@@ -1,0 +1,21 @@
+version: "3.8"
+
+x-logging: &default-logging
+  options:
+    max-size: "20m"
+    max-file: "3"
+  driver: json-file
+
+networks:
+  default:
+    name: starknet-dev-env-net
+
+services:
+  starknet-dev-env-service:
+    container_name: starknet-dev-env-container
+    image: ${DOCKER_IMG_NAME}
+    entrypoint: ["/go/_scripts/entrypoint.sh"]
+    restart: unless-stopped
+    logging: *default-logging
+    volumes:
+      - ${PROJECT_DIR}:/var/lib/starknet-dev-root:rw
