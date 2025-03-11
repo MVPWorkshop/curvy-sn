@@ -137,7 +137,6 @@ func Scan(inputJsonString string) (outputJsonString string) {
 	return string(tmp)
 }
 
-
 func compute_b(pubKey *BN254.GT) (b big.Int) {
 
 	return *pubKey.C0.B0.A0.BigInt(new(big.Int))
@@ -180,26 +179,26 @@ func computeSharedSecret(v *BN254_fr.Element, R *BN254.G1Affine) BN254.GT {
 	return P
 }
 
-type RecipientNewMeta struct  {
-	PK_k           string   `json:"k"`
-	PK_v           string   `json:"v"`
-	K			 string   `json:"K"`
-	V 			 string   `json:"V"`
+type RecipientNewMeta struct {
+	PK_k string `json:"k"`
+	PK_v string `json:"v"`
+	K    string `json:"K"`
+	V    string `json:"V"`
 }
 
 type RecipientInputMeta struct {
-	PK_k           string   `json:"k"`
-	PK_v           string   `json:"v"`
+	PK_k string `json:"k"`
+	PK_v string `json:"v"`
 }
 
 type RecipientInputData struct {
-	PK_k           string   `json:"k"`
-	PK_v           string   `json:"v"`
-	Rs             []string `json:"Rs"`
-	ViewTags       []string `json:"viewTags"`
+	PK_k     string   `json:"k"`
+	PK_v     string   `json:"v"`
+	Rs       []string `json:"Rs"`
+	ViewTags []string `json:"viewTags"`
 }
 
 type RecipientOutputData struct {
-	SpendingPubKeys []string `json:"spendingPubKeys"`
+	SpendingPubKeys  []string `json:"spendingPubKeys"`
 	SpendingPrivKeys []string `json:"spendingPrivKeys"`
 }

@@ -208,6 +208,6 @@ func UnpackXY(in string) (X string, Y string) {
 	return
 }
 
-func PackXY(X string, Y string) (out string){
+func PackXY(X string, Y string) (out string) {
 	return X + "." + Y
 }

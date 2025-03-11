@@ -10,22 +10,22 @@ import (
 )
 
 func TestSend(t *testing.T) {
-    
+
 	_, K := utils.SECP256k_Gen1G1KeyPair()
 	_, V, _ := utils.BN254_GenG1KeyPair()
 
-	output := sender.Send(`{"K":"` + utils.PackXY(K.X.String(), K.Y.String()) + `","V":"` + utils.PackXY(V.X.String(), V.Y.String())+ `"}`)
+	output := sender.Send(`{"K":"` + utils.PackXY(K.X.String(), K.Y.String()) + `","V":"` + utils.PackXY(V.X.String(), V.Y.String()) + `"}`)
 
 	t.Log(output)
 }
 
 func TestE2E(t *testing.T) {
-    
+
 	k, K := utils.SECP256k_Gen1G1KeyPair()
 	v, V, _ := utils.BN254_GenG1KeyPair()
 
 	var sendOutput sender.SenderOutputData
-	sendJsonOutput := sender.Send(`{"K":"` + utils.PackXY(K.X.String(), K.Y.String()) + `","V":"` + utils.PackXY(V.X.String(), V.Y.String())+ `"}`)
+	sendJsonOutput := sender.Send(`{"K":"` + utils.PackXY(K.X.String(), K.Y.String()) + `","V":"` + utils.PackXY(V.X.String(), V.Y.String()) + `"}`)
 
 	json.Unmarshal([]byte(sendJsonOutput), &sendOutput)
 
@@ -40,5 +40,5 @@ func TestE2E(t *testing.T) {
 	tmp, _ := json.Marshal(recipientInputData)
 	receiveOutput := recipient.Scan(string(tmp))
 
-	fmt.Println("receiveOutput", receiveOutput)	
+	fmt.Println("receiveOutput", receiveOutput)
 }

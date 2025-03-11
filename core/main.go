@@ -9,14 +9,14 @@ import (
 )
 
 func main() {
-    c := make(chan struct{}, 0)
+	c := make(chan struct{}, 0)
 
 	js.Global().Set("new_meta", js.FuncOf(newMeta))
 	js.Global().Set("get_meta", js.FuncOf(getMeta))
 	js.Global().Set("send", js.FuncOf(send))
 	js.Global().Set("scan", js.FuncOf(scan))
-	
-    <-c
+
+	<-c
 }
 
 func newMeta(in js.Value, args []js.Value) interface{} {

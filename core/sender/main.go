@@ -52,8 +52,6 @@ func Send(inputJsonString string) (outputJsonString string) {
 	return string(jsonData)
 }
 
-
-
 // Computes the shared secret - from sender's perspective
 func computeSharedSecret(r *BN254_fr.Element, V *BN254.G1Affine) BN254.GT {
 
@@ -97,7 +95,7 @@ func compute_b_asElement(pubKey *BN254.GT) (b SECP256K1_fr.Element) {
 	return *b.SetBigInt(&b_asBigInt)
 }
 
-func computePubKey(b *SECP256K1_fr.Element, K *SECP256K1.G1Affine) (SECP256K1.G1Affine) {
+func computePubKey(b *SECP256K1_fr.Element, K *SECP256K1.G1Affine) SECP256K1.G1Affine {
 
 	var b_asBigInt big.Int
 	b.BigInt(&b_asBigInt)
@@ -109,14 +107,13 @@ func computePubKey(b *SECP256K1_fr.Element, K *SECP256K1.G1Affine) (SECP256K1.G1
 }
 
 type SenderInputData struct {
-	K              string `json:"K"`
-	V              string `json:"V"`
+	K string `json:"K"`
+	V string `json:"V"`
 }
-
 
 type SenderOutputData struct {
 	PK_r           string `json:"r"`
 	R              string `json:"R"`
-	ViewTag		   string `json:"viewTag"`
+	ViewTag        string `json:"viewTag"`
 	SpendingPubKey string `json:"spendingPubKey"`
 }
