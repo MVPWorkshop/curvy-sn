@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import * as http from "http";
 import { json, urlencoded } from "body-parser";
 import { AppRouting } from './router/app-routing';
+import { Pool } from 'pg';
 
 const path = require("path");
 require('dotenv').config();
@@ -9,6 +10,7 @@ require('dotenv').config();
 export class Server {
     public app: express.Express;
     private router: Router;
+    private pool: Pool | undefined; 
 
     constructor() {
         this.app = express();
@@ -38,7 +40,30 @@ export class Server {
     }
 
     private configureDb() {
-        
+        // Initialize the PostgreSQL pool with environment variables
+        this.pool = new Pool({
+            host: process.env.PGHOST,
+            port: process.env.PGPORT ? parseInt(process.env.PGPORT) : 5432,
+            user: process.env.PGUSER,
+            password: process.env.PGPASSWORD,
+            database: process.env.PGDATABASE
+        });
+
+        // Test the PostgreSQL connection
+        this.pool.connect((err, client, release) => {
+            if (err) {
+                console.error('Error acquiring client', err.stack);
+            } else {
+                client?.query('SELECT NOW()', (err, result) => {
+                    release();
+                    if (err) {
+                        console.error('Error executing query', err.stack);
+                    } else {
+                        console.log('Postgres connected:', result.rows[0]);
+                    }
+                });
+            }
+        });
     }
 
     public run() {

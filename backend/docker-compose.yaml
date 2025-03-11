@@ -4,8 +4,8 @@ services:
     restart: always
     container_name: db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: curvy
     ports:
       - "5432:5432"
@@ -18,7 +18,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      
+
+  adminer:
+    image: adminer
+    restart: always
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DEFAULT_USER: user
+      ADMINER_DEFAULT_PASSWORD: user
+      ADMINER_DEFAULT_DB: curvy
+    ports:
+      - 8089:8080
+    networks:
+      - curvy_network
+
   indexer:
     build:
       context: .
