@@ -3,6 +3,10 @@ import * as http from "http";
 import { json, urlencoded } from "body-parser";
 import { AppRouting } from './router/app-routing';
 import { Pool } from 'pg';
+import { ContractListener } from './listener/contract-listener';
+import announcerArtifact from "./artifacts/curvy_announcer_CurvyAnnouncerV0.contract_class.json";
+import metaRegistryArtifact from "./artifacts/curvy_meta_registry_CurvyMetaRegistryV0.contract_class.json";
+
 
 const path = require("path");
 require('dotenv').config();
@@ -10,7 +14,7 @@ require('dotenv').config();
 export class Server {
     public app: express.Express;
     private router: Router;
-    private pool: Pool | undefined; 
+    private pool: Pool | undefined;
 
     constructor() {
         this.app = express();
@@ -22,6 +26,44 @@ export class Server {
         this.configureMiddleware();
         this.configureRoutes();
         this.configureDb();
+        this.configureListeners();
+    }
+
+    private configureListeners() {
+        const announcerListener = new ContractListener({
+            rpcUrl: process.env.RPC_URL!,
+            contractAddress: process.env.ANNOUNCER_ADDRESS!,
+            fromBlock: 0,
+            chunkSize: 15,
+            abi: announcerArtifact.abi,
+            decodeParameters: [
+                "core::byte_array::ByteArray",
+                "core::byte_array::ByteArray",
+                "core::byte_array::ByteArray",
+                "core::starknet::contract_address::ContractAddress",
+            ]
+        })
+
+        announcerListener.on("event", (data) => {
+            console.log("Announcer Event:", data)
+        })
+
+        announcerListener.start()
+
+        const metaListener = new ContractListener({
+            rpcUrl: process.env.RPC_URL!,
+            contractAddress: process.env.META_REGISTRY_ADDRESS!,
+            fromBlock: 0,
+            chunkSize: 10,
+            abi: metaRegistryArtifact.abi,
+            decodeParameters: ["core::felt252", "core::byte_array::ByteArray"],
+        })
+
+        metaListener.on("event", (data) => {
+            console.log("Meta Registry Event:", data)
+        })
+
+        metaListener.start()
     }
 
     private configureMiddleware() {
@@ -35,7 +77,7 @@ export class Server {
         if (process.env.NODE_ENV == "production") {
             this.app.use(express.static(path.join(__dirname, '/../client/build')));
         }
-        
+
         new AppRouting(this.router);
     }
 
@@ -73,7 +115,7 @@ export class Server {
 
         //Docker sends SIGTERM signal when using docker stop
         //If this isn't present the container will take much longer to be terminated
-        process.on("SIGTERM", function(code_signal_error){
+        process.on("SIGTERM", function (code_signal_error) {
             console.log(code_signal_error)
             process.exit(0) //or whatever you want
         })
