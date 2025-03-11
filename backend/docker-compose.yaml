@@ -1,10 +1,42 @@
 services:
-  backend:
+  db:
+    image: postgres:12
+    restart: always
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: curvy
+    ports:
+      - "5432:5432"
+    networks:
+      - curvy_network
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U postgres -d "curvy"']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      
+  indexer:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: curvy_indexer
     ports:
       - "4000:4000"
+    networks:
+      - curvy_network
     env_file:
       - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+
+networks:
+  curvy_network:
+    driver: bridge
