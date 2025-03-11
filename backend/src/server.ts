@@ -44,6 +44,15 @@ export class Server {
     public run() {
         const port = process.env.PORT || 4000;
         const server = http.createServer(this.app);
+
+
+        //Docker sends SIGTERM signal when using docker stop
+        //If this isn't present the container will take much longer to be terminated
+        process.on("SIGTERM", function(code_signal_error){
+            console.log(code_signal_error)
+            process.exit(0) //or whatever you want
+        })
+
         server.listen(port, () => {
             console.log(`Express server running on port ${port}.`);
         });

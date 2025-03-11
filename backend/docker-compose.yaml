@@ -1,0 +1,10 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: curvy_indexer
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
