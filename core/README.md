@@ -1,10 +1,18 @@
-# Core of the off-chain's part protocol
+# Core of the protocol's off-chain part
 
 The CLI tool is compiled to WASM and used on the client-side by the sender and the recipient.
 
 ## Build
 
-`GOOS=js GOARCH=wasm go build -o curvy-core.wasm`
+```bash
+GOOS=js GOARCH=wasm go build -o curvy-core.wasm
+```
+
+Note: Keep up to date the `wasm_exec.js` file.
+
+```bash
+cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" <destination>
+```
 
 ## Usage
 
