@@ -19,4 +19,5 @@ The project's functionality is dispersed across different sections. Each has its
 
 - `./docs`: General protocol documentation, with detailed results that were achieved
 - `./core`: Off-chain protocol code part used by the sender and recipient
-- `./sc`: On-chain contracts (used for sender <-> recipient "communication")
+- `./sc`: On-chain contracts (used for sender <-> recipient communication)
+- `./backend`: Indexer and other Backend components used by the Frontend
