@@ -1,26 +1,7 @@
 // import { Pool } from "pg";
-import { ContractEvent, ContractListener, ContractListenerOptions, StarknetTransaction } from "../listener/contract-listener";
+import { ContractListener } from "../listener/contract-listener"
+import { IndexerOptions, ListenerData } from "../types";
 
-interface DBConfig {
-    host: string;
-    port: number;
-    user: string;
-    password: string;
-    database: string;
-}
-
-export interface IndexerOptions {
-    rpcUrl: string;
-    dbConfig: DBConfig;
-    announcer: ContractListenerOptions;
-    metaRegistry: ContractListenerOptions;
-}
-
-export interface ListenerData { 
-    raw: ContractEvent; 
-    tx: StarknetTransaction; 
-    decoded: any 
-}
 
 export class Indexer {
     // private pool: Pool;

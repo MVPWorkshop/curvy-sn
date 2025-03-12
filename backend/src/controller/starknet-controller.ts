@@ -1,7 +1,8 @@
 import { Router, Request, Response } from "express";
 import { AppRoute } from "../router/app-route";
 import cors from "cors";
-import { Indexer, IndexerOptions } from "../indexer/starknet-indexer";
+import { Indexer } from "../indexer/starknet-indexer";
+import { IndexerOptions } from "../types"
 
 export class StarknetController implements AppRoute {
   public route: string = "/starknet";
