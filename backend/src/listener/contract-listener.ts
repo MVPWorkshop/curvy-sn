@@ -1,7 +1,7 @@
 import { CallData } from "starknet";
 import { EventEmitter } from "stream";
 
-interface ContractListenerOptions {
+export interface ContractListenerOptions {
     rpcUrl: string;
     contractAddress: string;
     fromBlock: number;
