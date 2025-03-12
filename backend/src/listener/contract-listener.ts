@@ -10,7 +10,7 @@ export interface ContractListenerOptions {
     decodeParameters: string[];
 }
 
-interface ContractEvent {
+export interface ContractEvent {
     block_hash: string;
     block_number: number;
     data: string[]
@@ -30,7 +30,7 @@ interface StarknetResult {
     version: string;
 }
 
-interface StarknetTransaction {
+export interface StarknetTransaction {
     jsonrpc: string;
     id: number;
     method: string;

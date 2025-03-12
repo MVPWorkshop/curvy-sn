@@ -1,5 +1,5 @@
 // import { Pool } from "pg";
-import { ContractListener, ContractListenerOptions } from "../listener/contract-listener";
+import { ContractEvent, ContractListener, ContractListenerOptions, StarknetTransaction } from "../listener/contract-listener";
 
 interface DBConfig {
     host: string;
@@ -14,6 +14,12 @@ export interface IndexerOptions {
     dbConfig: DBConfig;
     announcer: ContractListenerOptions;
     metaRegistry: ContractListenerOptions;
+}
+
+export interface ListenerData { 
+    raw: ContractEvent; 
+    tx: StarknetTransaction; 
+    decoded: any 
 }
 
 export class Indexer {
@@ -47,7 +53,7 @@ export class Indexer {
 
     public start() {
         // Subscribe to announcer events.
-        this.announcerListener.on("event", async (data) => {
+        this.announcerListener.on("event", async (data: ListenerData) => {
             await this.handleAnnouncerEvent(data);
         });
         this.announcerListener.on("error", (err) => {
@@ -56,7 +62,7 @@ export class Indexer {
         this.announcerListener.start();
 
         // Subscribe to meta registry events.
-        this.metaListener.on("event", async (data) => {
+        this.metaListener.on("event", async (data: ListenerData) => {
             await this.handleMetaEvent(data);
         });
         this.metaListener.on("error", (err) => {
@@ -65,11 +71,11 @@ export class Indexer {
         this.metaListener.start();
     }
 
-    private async handleAnnouncerEvent(data: any) {
+    private async handleAnnouncerEvent(data: ListenerData) {
         console.log("ANNOUNCER:",data)
     }
 
-    private async handleMetaEvent(data: any) {
+    private async handleMetaEvent(data: ListenerData) {
         console.log("META:", data)
     }
 }
