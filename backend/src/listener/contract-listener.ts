@@ -1,3 +1,4 @@
+import { CallData } from "starknet";
 import { EventEmitter } from "stream";
 
 interface ContractListenerOptions {
@@ -18,6 +19,24 @@ interface ContractEvent {
     transaction_hash: string;
 }
 
+interface StarknetResult {
+    calldata: string[];
+    max_fee: string;
+    nonce: string;
+    sender_address: string;
+    signature: string[];
+    transaction_hash: string;
+    type: string;
+    version: string;
+}
+
+interface StarknetTransaction {
+    jsonrpc: string;
+    id: number;
+    method: string;
+    result: StarknetResult
+}
+
 export class ContractListener extends EventEmitter {
     private options: ContractListenerOptions;
     private pollingInterval: number;
@@ -32,44 +51,91 @@ export class ContractListener extends EventEmitter {
     }
 
     private async pollEvents() {
-        console.log(`polling for events of contract ${this.options.contractAddress}`)
+        console.log(`Polling events for contract ${this.options.contractAddress}`);
         try {
-            const reqBody = {
-                id: 1,
-                jsonrpc: "2.0",
-                method: "starknet_getEvents",
-                params: [
-                    {
-                        from_block: { block_number: this.lastBlock },
-                        to_block: "latest",
-                        address: this.options.contractAddress,
-                        chunk_size: this.options.chunkSize || 10
-                    }
-                ]
-            }
-
-            const res = await fetch(this.options.rpcUrl, {
-                method: "POST",
-                headers: { "accept": "application/json", "content-type": "application/json" },
-                body: JSON.stringify(reqBody),
-            });
-
-            const data = await res.json();
-            const events = data.result?.events as ContractEvent[];
-
-            if (events.length === 0) return;
-
-            console.log(`found events for contract ${this.options.contractAddress}`)
+            const events = await this.fetchEvents();
+            if (!events.length) return;
 
             for (const event of events) {
-                this.emit("event", { raw: event })
+                const result = await this.processEvent(event);
+                if (result) {
+                    this.emit("event", result);
+                }
             }
 
             const latestEvent = events[events.length - 1];
             this.lastBlock = (latestEvent.block_number || this.lastBlock) + 1;
         } catch (e: any) {
-            console.log(e);
+            this.emit("error", e);
+            console.error(e);
         }
+    }
+
+    private async fetchEvents(): Promise<ContractEvent[]> {
+        const reqBody = {
+            id: 1,
+            jsonrpc: "2.0",
+            method: "starknet_getEvents",
+            params: [
+                {
+                    from_block: { block_number: this.lastBlock },
+                    to_block: "latest",
+                    address: this.options.contractAddress,
+                    chunk_size: this.options.chunkSize || 10,
+                },
+            ],
+        };
+
+        const res = await fetch(this.options.rpcUrl, {
+            method: "POST",
+            headers: {
+                accept: "application/json",
+                "content-type": "application/json",
+            },
+            body: JSON.stringify(reqBody),
+        });
+        const data = await res.json();
+        return (data.result?.events || []) as ContractEvent[];
+    }
+
+    private async processEvent(event: ContractEvent): Promise<{ raw: ContractEvent; tx: StarknetTransaction; decoded: any } | null> {
+        try {
+            const receipt = await this.fetchTransaction(event.transaction_hash);
+            const callData = new CallData(this.options.abi);
+            const decodedData = receipt.result.calldata.slice(4);
+
+            if (decodedData.length < this.options.decodeParameters.length) {
+                console.error(
+                    `Insufficient calldata length for event ${event.transaction_hash}: expected at least ${this.options.decodeParameters.length}, got ${decodedData.length}`
+                );
+                return null;
+            }
+
+            const decoded = callData.decodeParameters(this.options.decodeParameters, decodedData);
+            return { raw: event, tx: receipt, decoded };
+        } catch (e: any) {
+            console.log(e)
+            return null;
+        }
+    }
+
+    private async fetchTransaction(hash: string): Promise<StarknetTransaction> {
+        const requestBody = {
+            id: 1,
+            jsonrpc: "2.0",
+            method: "starknet_getTransactionByHash",
+            params: [hash],
+        };
+
+        const res = await fetch(this.options.rpcUrl, {
+            method: "POST",
+            headers: { "accept": "application/json", "content-type": "application/json" },
+            body: JSON.stringify(requestBody),
+        });
+
+        const txRes = await res.json() as StarknetTransaction;
+
+        return txRes;
     }
 
     public start() {
