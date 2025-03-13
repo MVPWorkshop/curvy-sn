@@ -16,7 +16,7 @@ export class StarknetController implements AppRoute {
     this.router.use(cors({ origin: "*" }));
 
     //endpoint
-    this.router.get("/check", cors(), (request, response) => {
+    this.router.get("/checkmeta/:metaId", cors(), (request, response) => {
       this.checkEndpoint(request, response);
     });
 
@@ -26,8 +26,7 @@ export class StarknetController implements AppRoute {
   }
 
   public async resolveMetaId(req: Request, res: Response) {
-    const address = req.params.address;
-
+    const { address } = req.params;
     //TODO: typecheck starknet address
 
     try {
@@ -53,8 +52,36 @@ export class StarknetController implements AppRoute {
   }
 
   public async checkEndpoint(req: Request, res: Response) {
-    res.status(200).json({ msg: "Check" });
-    console.log(req.body);
+    const { metaId } = req.params;
+
+    if(!metaId) {
+      return res.status(400).json({
+        data: null,
+        error: "Invalid Meta ID"
+      });
+    }
+
+    try{
+      const result = await this.indexer.checkMetaId(metaId);
+
+      if (result === null) {
+        return res.status(400).json({
+          data: null,
+          error: "Meta ID is not existant!",
+        });
+      }
+
+      return res.status(200).json({
+        data: {
+          ...result
+        },
+        error: null
+      })
+    }catch(err: any) {
+      console.error("Error checking meta ID:", err);
+      res.status(500).json({ data: null, error: "Internal server error" });
+    }
+
     return;
   }
 }

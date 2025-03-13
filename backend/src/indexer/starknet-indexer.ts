@@ -130,8 +130,21 @@ export class Indexer {
         ORDER BY block_number DESC 
         LIMIT 1
       `;
-      
+
     const result = await this.pool.query(query, [address]);
-    return result.rows.length === 0 ? null : result.rows[0].meta_id
+    return result.rows.length === 0 ? null : result.rows[0].meta_id;
+  }
+
+  public async checkMetaId(metaId: string) {
+    const query = `
+      SELECT spending_public_key, viewing_public_key
+      FROM meta_addresses_registry
+      WHERE meta_id = $1
+      ORDER BY block_number DESC
+      LIMIT 1
+    `;
+
+    const result = await this.pool.query(query, [metaId]);
+    return result.rows.length === 0 ? null : result.rows[0];
   }
 }
