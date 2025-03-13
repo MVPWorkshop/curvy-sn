@@ -1,10 +1,10 @@
-import express, { Router } from 'express';
+import express, { Router } from "express";
 import * as http from "http";
 import { json, urlencoded } from "body-parser";
-import { AppRouting } from './router/app-routing';
+import { AppRouting } from "./router/app-routing";
 
 const path = require("path");
-require('dotenv').config();
+require("dotenv").config();
 
 export class Server {
     public app: express.Express;
@@ -30,7 +30,9 @@ export class Server {
         const basePath = "/";
         this.app.use(basePath, this.router);
         if (process.env.NODE_ENV == "production") {
-            this.app.use(express.static(path.join(__dirname, '/../client/build')));
+            this.app.use(
+                express.static(path.join(__dirname, "/../client/build"))
+            );
         }
 
         new AppRouting(this.router);
@@ -40,13 +42,12 @@ export class Server {
         const port = process.env.PORT || 4000;
         const server = http.createServer(this.app);
 
-
         //Docker sends SIGTERM signal when using docker stop
         //If this isn't present the container will take much longer to be terminated
         process.on("SIGTERM", function (code_signal_error) {
-            console.log(code_signal_error)
-            process.exit(0) //or whatever you want
-        })
+            console.log(code_signal_error);
+            process.exit(0); //or whatever you want
+        });
 
         server.listen(port, () => {
             console.log(`Express server running on port ${port}.`);
