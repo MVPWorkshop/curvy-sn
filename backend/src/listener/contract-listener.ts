@@ -7,41 +7,11 @@ import {
     TokenTransfer,
 } from "./parser";
 
-interface ContractListenerOptions {
-    rpcUrl: string;
-    contractAddress: string;
-    fromBlock: number;
-    chunkSize?: number;
-    abi: any;
-    decodeParameters: string[];
-}
-
-interface ContractEvent {
-    block_hash: string;
-    block_number: number;
-    data: string[];
-    from_address: string;
-    keys: string[];
-    transaction_hash: string;
-}
-
-interface StarknetResult {
-    calldata: string[];
-    max_fee: string;
-    nonce: string;
-    sender_address: string;
-    signature: string[];
-    transaction_hash: string;
-    type: string;
-    version: string;
-}
-
-interface StarknetTransaction {
-    jsonrpc: string;
-    id: number;
-    method: string;
-    result: StarknetResult;
-}
+import {
+    ContractEvent,
+    ContractListenerOptions,
+    StarknetTransaction,
+} from "../types";
 
 export class ContractListener extends EventEmitter {
     private options: ContractListenerOptions;
