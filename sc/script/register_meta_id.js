@@ -1,25 +1,11 @@
-import {
-    ec,
-    hash,
-    num,
-    json,
-    Contract,
-    EthSigner,
-    Account,
-    RpcProvider,
-    stark,
-    cairo,
-    eth,
-    byteArray,
-    shortString,
-    CallData,
-} from "starknet";
+import { stark, byteArray, CallData } from "starknet";
 import { initDeployerAccount } from "./_utils.js";
 
 const metaRegistryAddress =
     "0x06f120753ec4fec9c81ce364db6b64189123cbce8cd817f1a2b6f3d39166a176";
 
-const metaId = "m.curvy";
+// Params:
+const metaId = "m2.curvy";
 const metaAddress = "spending_key:::viewing_key";
 
 const transaction = {
