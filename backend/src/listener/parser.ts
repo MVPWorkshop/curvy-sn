@@ -1,17 +1,6 @@
 import { validateAndParseAddress } from "starknet";
+import { ParsedCall, TokenTransfer } from "../types";
 import { TOKENS_OF_INTEREST } from "./constants";
-
-export interface ParsedCall {
-    contractAddress: string;
-    entrypoint: string;
-    calldata: string[];
-}
-
-export interface TokenTransfer {
-    recipient: string;
-    amount: string;
-    name: string;
-}
 
 export const extractAllCalls = (data: string[]): Array<ParsedCall> | null => {
     // Helper article:
@@ -93,7 +82,13 @@ export const parseERC20Transfers = (
             const amount = `${
                 parseInt(call.calldata[1], 16) / 10 ** tokenInfo.decimals
             }`;
-            transfers.push({ recipient, amount, name: tokenInfo.name });
+            transfers.push({
+                recipient,
+                amount,
+                name: tokenInfo.name,
+                decimals: tokenInfo.decimals,
+                textAmount: `${amount} ${tokenInfo.name}`,
+            });
         }
     } catch (e) {
         console.log(e);

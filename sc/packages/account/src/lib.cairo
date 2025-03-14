@@ -1,5 +1,15 @@
+/// Curvy Protocol V0: Account
+
 #[starknet::contract(account)]
-pub mod AccountV0 {
+pub mod CurvyAccountV0 {
+    /// Constructor
+    /// Params:
+    ///     public_key: Ethereum SECP256k1 public key
+    #[constructor]
+    fn constructor(ref self: ContractState, public_key: EthPublicKey) {
+        self.eth_account.initializer(public_key);
+    }
+
     use openzeppelin_account::EthAccountComponent;
     use openzeppelin_account::interface::EthPublicKey;
     use openzeppelin_introspection::src5::SRC5Component;
@@ -29,14 +39,9 @@ pub mod AccountV0 {
         #[flat]
         SRC5Event: SRC5Component::Event,
     }
-
-    #[constructor]
-    fn constructor(ref self: ContractState, public_key: EthPublicKey) {
-        self.eth_account.initializer(public_key);
-    }
 }
 
 
-pub mod AccountV0Types {
+pub mod CurvyAccountV0Types {
     pub use openzeppelin_account::interface::EthPublicKey;
 }
