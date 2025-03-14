@@ -2,7 +2,7 @@
 use starknet::{ContractAddress};
 
 #[starknet::contract]
-mod CurvyMetaRegistryV0 {
+pub mod CurvyMetaRegistryV0 {
     #[constructor]
     fn constructor(ref self: ContractState) {}
 
@@ -16,9 +16,7 @@ mod CurvyMetaRegistryV0 {
         /// Returns:
         ///     None
         fn register(ref self: ContractState, meta_id: felt252, meta_address: ByteArray) {
-            assert(
-                self.meta_id_owner.read(meta_id.into()).is_zero(), 'Meta ID exits!',
-            );
+            assert(self.get_meta_id_owner(meta_id).is_zero(), 'Meta ID exists!');
 
             let caller = get_caller_address();
 
@@ -37,23 +35,35 @@ mod CurvyMetaRegistryV0 {
         fn set_meta_address(ref self: ContractState, meta_id: felt252, meta_address: ByteArray) {
             let caller = get_caller_address();
 
-            assert(
-                self.meta_id_owner.read(meta_id.into()) == caller, 'Not the owner!',
-            );
+            assert(self.get_meta_id_owner(meta_id) == caller, 'Not the owner!');
 
             self.emit(MetaAddressSet { meta_id, owner: caller });
         }
 
-        fn transfer_meta_id(ref self: ContractState, meta_id: felt252, new_owner: ContractAddress){
+        /// Returns the owner of the passed down Meta Id
+        /// Params:
+        ///     meta_id: Id for which to return the owner
+        /// Returns:
+        ///     ContractAddress: Meta Id's owner address
+        fn get_meta_id_owner(self: @ContractState, meta_id: felt252) -> ContractAddress {
+            self.meta_id_owner.read(meta_id)
+        }
+
+        /// Transfer the ownership of the Meta Id to someone else
+        /// Dev: Reverts if the caller is not the current owner
+        /// Params:
+        ///     meta_id: Id that will be transfered
+        ///     new_owner: Address of the new owner
+        /// Returns:
+        ///     None
+        fn transfer_meta_id(ref self: ContractState, meta_id: felt252, new_owner: ContractAddress) {
             let caller = get_caller_address();
 
-            assert(
-                self.meta_id_owner.read(meta_id.into()) == caller, 'Not the owner!',
-            );
+            assert(self.get_meta_id_owner(meta_id) == caller, 'Not the owner!');
 
             self.meta_id_owner.write(meta_id.into(), new_owner);
 
-            self.emit(MetaIdTransfered{meta_id, old_owner: caller, new_owner});
+            self.emit(MetaIdTransfered { meta_id, old_owner: caller, new_owner });
         }
     }
 
@@ -90,10 +100,12 @@ mod CurvyMetaRegistryV0 {
 
 
 #[starknet::interface]
-trait ICurvyMetaRegistry_Core<TContractState> {
+pub trait ICurvyMetaRegistry_Core<TContractState> {
     fn register(ref self: TContractState, meta_id: felt252, meta_address: ByteArray);
 
     fn set_meta_address(ref self: TContractState, meta_id: felt252, meta_address: ByteArray);
+
+    fn get_meta_id_owner(self: @TContractState, meta_id: felt252) -> ContractAddress;
 
     fn transfer_meta_id(ref self: TContractState, meta_id: felt252, new_owner: ContractAddress);
 }
