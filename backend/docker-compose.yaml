@@ -13,6 +13,7 @@ services:
       - curvy_network
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./migrations/001_initialize.up.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", 'pg_isready -U postgres -d "curvy"']
       interval: 5s
@@ -28,7 +29,7 @@ services:
       ADMINER_DEFAULT_PASSWORD: user
       ADMINER_DEFAULT_DB: curvy
     ports:
-      - 8089:8080
+      - 8080:8080
     networks:
       - curvy_network
 
