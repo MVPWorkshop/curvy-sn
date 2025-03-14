@@ -1,11 +1,7 @@
 import { CallData, validateAndParseAddress } from "starknet";
 import { EventEmitter } from "stream";
-import {
-    extractAllCalls,
-    ParsedCall,
-    parseERC20Transfers,
-    TokenTransfer,
-} from "./parser";
+import { extractAllCalls, parseERC20Transfers } from "./parser";
+import { ParsedCall, TokenTransfer } from "../types";
 
 import {
     ContractEvent,

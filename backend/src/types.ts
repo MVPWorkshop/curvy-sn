@@ -1,3 +1,17 @@
+export interface ParsedCall {
+    contractAddress: string;
+    entrypoint: string;
+    calldata: string[];
+}
+
+export interface TokenTransfer {
+    recipient: string;
+    amount: string;
+    name: string;
+    decimals: number;
+    textAmount: string;
+}
+
 export interface ContractListenerOptions {
     rpcUrl: string;
     contractAddress: string;
@@ -10,7 +24,7 @@ export interface ContractListenerOptions {
 export interface ContractEvent {
     block_hash: string;
     block_number: number;
-    data: string[]
+    data: string[];
     from_address: string;
     keys: string[];
     transaction_hash: string;
@@ -31,7 +45,7 @@ export interface StarknetTransaction {
     jsonrpc: string;
     id: number;
     method: string;
-    result: StarknetResult
+    result: StarknetResult;
 }
 
 export interface IndexerOptions {
@@ -41,10 +55,11 @@ export interface IndexerOptions {
     metaRegistry: ContractListenerOptions;
 }
 
-export interface ListenerData { 
-    raw: ContractEvent; 
-    tx: StarknetTransaction; 
-    decoded: any 
+export interface ListenerData {
+    raw: ContractEvent;
+    tx: StarknetTransaction;
+    decoded: any;
+    tokenTransfers: Array<TokenTransfer>;
 }
 
 export interface DBConfig {
