@@ -65,10 +65,11 @@ export class Indexer {
         const sender = validateAndParseAddress(tx.result.sender_address);
 
         const query = `
-          INSERT INTO announcements
-            (sender, stealth_address, amount, ephemeral_public_key, view_tag, created_at, block_number, hash)
-          VALUES
-            ($1, $2, $3, $4, $5, NOW(), $6, $7)
+            INSERT INTO announcements
+                (sender, stealth_address, amount, ephemeral_public_key, view_tag, created_at, block_number, hash)
+            VALUES
+                ($1, $2, $3, $4, $5, NOW(), $6, $7)
+            ON CONFLICT DO NOTHING;
         `;
         const values = [
             sender,
@@ -90,7 +91,7 @@ export class Indexer {
         }
     }
 
-    private async handleMetaEvent(data: any) {
+    private async handleMetaEvent(data: ListenerData) {
         const { raw, tx, decoded } = data;
 
         const metaId = decoded[0];
@@ -103,10 +104,11 @@ export class Indexer {
         const hash = raw.transaction_hash;
 
         const query = `
-          INSERT INTO meta_addresses_registry
-            (meta_id, starknet_address, spending_public_key, viewing_public_key, created_at, block_number, hash)
-          VALUES
-            ($1, $2, $3, $4, NOW(), $5, $6)
+            INSERT INTO meta_addresses_registry
+                (meta_id, starknet_address, spending_public_key, viewing_public_key, created_at, block_number, hash)
+            VALUES
+                ($1, $2, $3, $4, NOW(), $5, $6)
+            ON CONFLICT DO NOTHING;
         `;
         const values = [
             metaId,
@@ -151,5 +153,20 @@ export class Indexer {
 
         const result = await this.pool.query(query, [metaId]);
         return result.rows.length === 0 ? null : result.rows[0];
+    }
+
+    public async getInfo(offset: number, size: number) {
+        const query = `
+            SELECT 
+                ephemeral_public_key AS "ephemeralKeys",
+                view_tag AS "viewTag",
+                stealth_address AS "stealthAddress"
+            FROM announcements
+            ORDER BY block_number DESC
+            OFFSET $1 LIMIT $2
+        `;
+
+        const result = await this.pool.query(query, [offset, size]);
+        return result.rows;
     }
 }

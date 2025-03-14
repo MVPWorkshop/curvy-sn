@@ -23,6 +23,10 @@ export class StarknetController implements AppRoute {
     this.router.get("/resolve/:address", cors(), (req, res) => {
       this.resolveMetaId(req, res);
     });
+
+    this.router.get("/info", cors(), (req, res) => {
+      this.getInfo(req, res);
+    })
   }
 
   public async resolveMetaId(req: Request, res: Response) {
@@ -54,14 +58,14 @@ export class StarknetController implements AppRoute {
   public async checkEndpoint(req: Request, res: Response) {
     const { metaId } = req.params;
 
-    if(!metaId) {
+    if (!metaId) {
       return res.status(400).json({
         data: null,
         error: "Invalid Meta ID"
       });
     }
 
-    try{
+    try {
       const result = await this.indexer.checkMetaId(metaId);
 
       if (result === null) {
@@ -77,11 +81,25 @@ export class StarknetController implements AppRoute {
         },
         error: null
       })
-    }catch(err: any) {
+    } catch (err: any) {
       console.error("Error checking meta ID:", err);
       res.status(500).json({ data: null, error: "Internal server error" });
     }
 
     return;
+  }
+
+  public async getInfo(req: Request, res: Response) {
+    const offset = parseInt(req.query.offset as string, 10) || 0;
+    const size = parseInt(req.query.size as string, 10) || 10;
+
+    try {
+      const result = await this.indexer.getInfo(offset, size);
+
+      res.status(200).json({ data: result, error: null });
+    } catch (err: any) {
+      console.error("Error fetching info:", err);
+      res.status(500).json({ data: null, error: "Internal server error" });
+    }
   }
 }
