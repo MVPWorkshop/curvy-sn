@@ -31,5 +31,6 @@ jobs:
 
         - name: 'Build Inventory Image'
           run: |
+            cd backend
             docker build . --tag ghcr.io/mvpworkshop/curvy-indexer:${{steps.prepare.outputs.tag_name}} --tag ghcr.io/mvpworkshop/curvy-indexer:latest
             docker push --all-tags ghcr.io/mvpworkshop/curvy-indexer
