@@ -214,7 +214,7 @@ export class Indexer {
         return result.rows.length === 0 ? null : result.rows[0];
     }
 
-    public async getInfo(offset: number, size: number) {
+    public async getHistory(offset: number, size: number) {
         const query = `
           SELECT
               ephemeral_public_key AS "ephemeralKeys",
@@ -227,6 +227,28 @@ export class Indexer {
         `;
 
         const result = await this.pool.query(query, [offset, size]);
+        return result.rows;
+    }
+
+    public async getHistoryCount() {
+        const query = `SELECT COUNT(*) AS total FROM announcements`;
+
+        const result = await this.pool.query(query);
+        return parseInt(result.rows[0].total, 10);
+    }
+
+    public async getTransfers(addresses: string[]) {
+        const query = `
+            SELECT 
+                sender AS address,
+                hash AS "transactionHash",
+                amount
+            FROM announcements
+            WHERE sender = ANY($1)
+            ORDER BY block_number DESC
+        `;
+
+        const result = await this.pool.query(query, [addresses]);
         return result.rows;
     }
 }
