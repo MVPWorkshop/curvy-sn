@@ -11,6 +11,9 @@ import (
 	BN254_fr "github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	SECP256K1 "github.com/consensys/gnark-crypto/ecc/secp256k1"
 	SECP256K1_fr "github.com/consensys/gnark-crypto/ecc/secp256k1/fr"
+
+	BN254_fp "github.com/consensys/gnark-crypto/ecc/bn254/fp"
+	SECP256K1_fp "github.com/consensys/gnark-crypto/ecc/secp256k1/fp"
 )
 
 func SECP256k1_MulG1PointandElement(pt *SECP256K1.G1Affine, el *SECP256K1_fr.Element) (res SECP256K1.G1Affine) {
@@ -202,6 +205,7 @@ func GenRandomRsAndViewTags(len int, viewTagVersion string) (Rs []string, VTags 
 
 func UnpackXY(in string) (X string, Y string) {
 	separatorIdx := strings.IndexByte(in, '.')
+	if(separatorIdx == -1) { return "invalid", "invalid"};
 	X = in[:separatorIdx]
 	Y = in[separatorIdx+1:]
 
@@ -210,4 +214,47 @@ func UnpackXY(in string) (X string, Y string) {
 
 func PackXY(X string, Y string) (out string) {
 	return X + "." + Y
+}
+
+func IsValidBN254Point(point string) (bool) {
+	Xstr, Ystr := UnpackXY(point)
+
+	if !IsDigitsOnly(Xstr) { return false }
+	if !IsDigitsOnly(Ystr) { return false }
+
+	var X, Y BN254_fp.Element
+	X.SetString(Xstr)
+	Y.SetString(Ystr)
+
+	var p BN254.G1Affine
+	p.X = X
+	p.Y = Y
+
+	return p.IsOnCurve()
+}
+
+func IsValidSECP256k1Point(point string) (bool) {
+	Xstr, Ystr := UnpackXY(point)
+
+	if !IsDigitsOnly(Xstr) { return false }
+	if !IsDigitsOnly(Ystr) { return false }
+
+	var X, Y SECP256K1_fp.Element
+	X.SetString(Xstr)
+	Y.SetString(Ystr)
+
+	var p SECP256K1.G1Affine
+	p.X = X
+	p.Y = Y
+
+	return p.IsOnCurve()
+}
+
+func IsDigitsOnly(s string) bool {
+    for _, c := range s {
+        if c < '0' || c > '9' {
+            return false
+        }
+    }
+    return true
 }

@@ -5,6 +5,7 @@ package main
 import (
 	"curvy-core/recipient"
 	"curvy-core/sender"
+	"curvy-core/utils"
 	"syscall/js"
 )
 
@@ -15,6 +16,9 @@ func main() {
 	js.Global().Set("get_meta", js.FuncOf(getMeta))
 	js.Global().Set("send", js.FuncOf(send))
 	js.Global().Set("scan", js.FuncOf(scan))
+	// debugging options
+	js.Global().Set("dbg_isValidBN254Point", js.FuncOf(isValidBN254Point))
+	js.Global().Set("dbg_isValidSECP256k1Point", js.FuncOf(isValidSECP256k1Point))
 
 	<-c
 }
@@ -37,5 +41,14 @@ func send(in js.Value, args []js.Value) interface{} {
 
 func scan(in js.Value, args []js.Value) interface{} {
 	js.Global().Set("scan_meta", recipient.Scan(js.Global().Get("scan_data").String()))
+	return nil
+}
+
+func isValidBN254Point(in js.Value, args []js.Value) interface{} {
+	js.Global().Set("dbg_isValidBN254Point_res", utils.IsValidBN254Point(js.Global().Get("dbg_isValidBN254Point_input").String()))
+	return nil
+}
+func isValidSECP256k1Point(in js.Value, args []js.Value) interface{} {
+	js.Global().Set("dbg_isValidSECP256k1Point_res", utils.IsValidSECP256k1Point(js.Global().Get("dbg_isValidSECP256k1Point_input").String()))
 	return nil
 }

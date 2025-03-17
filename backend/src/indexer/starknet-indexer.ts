@@ -2,6 +2,12 @@ import { Pool } from "pg";
 import { ContractListener } from "../listener/contract-listener";
 import { IndexerOptions, ListenerData } from "../types";
 import { validateAndParseAddress, shortString } from "starknet";
+import {
+    isValidEphemeralPublicKey,
+    isValidMetaAddress,
+    isValidSECP256k1Point,
+    isValidViewTag,
+} from "../validation/curvy-utils";
 
 export class Indexer {
     private pool: Pool;
@@ -57,7 +63,8 @@ export class Indexer {
 
         const ephemeralPublicKey = decoded[0];
         const viewTag = decoded[1];
-        const stealthAccountAddress = decoded[3];
+        const stealthAccountPublicKey = decoded[2];
+        const stealthAccountAddress = validateAndParseAddress(decoded[3]);
 
         // note: there can be multiple token transfer - TODO handle this in the future
         const amount =
@@ -66,11 +73,18 @@ export class Indexer {
         const hash = raw.transaction_hash;
         const sender = validateAndParseAddress(tx.result.sender_address);
 
+        let allDataIsValid =
+            (await isValidEphemeralPublicKey(ephemeralPublicKey)) &&
+            (await isValidViewTag(viewTag)) &&
+            (await isValidSECP256k1Point(stealthAccountPublicKey));
+
+        console.log({ allDataIsValid });
+
         const query = `
           INSERT INTO announcements
-              (sender, stealth_address, amount, ephemeral_public_key, view_tag, created_at, block_number, hash)
+              (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid)
           VALUES
-              ($1, $2, $3, $4, $5, NOW(), $6, $7)
+              ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10)
           ON CONFLICT DO NOTHING;
         `;
         const values = [
@@ -79,8 +93,11 @@ export class Indexer {
             amount,
             ephemeralPublicKey,
             viewTag,
+            stealthAccountPublicKey,
+            stealthAccountAddress,
             blockNumber,
             hash,
+            allDataIsValid,
         ];
 
         console.log(`Inserting...`, { values });
@@ -108,11 +125,14 @@ export class Indexer {
         const blockNumber = raw.block_number;
         const hash = raw.transaction_hash;
 
+        let allDataIsValid = await isValidMetaAddress(metaAddress);
+        console.log({ allDataIsValid });
+
         const query = `
           INSERT INTO meta_addresses_registry
-              (meta_id, starknet_address, spending_public_key, viewing_public_key, created_at, block_number, hash)
+              (meta_id, starknet_address, spending_public_key, viewing_public_key, created_at, block_number, hash, all_data_is_valid)
           VALUES
-              ($1, $2, $3, $4, NOW(), $5, $6)
+              ($1, $2, $3, $4, NOW(), $5, $6, $7)
           ON CONFLICT DO NOTHING;
         `;
         const values = [
@@ -122,6 +142,7 @@ export class Indexer {
             viewingPublicKey,
             blockNumber,
             hash,
+            allDataIsValid,
         ];
 
         console.log(`Inserting...`, { values });
@@ -167,6 +188,7 @@ export class Indexer {
               view_tag AS "viewTag",
               stealth_address AS "stealthAddress"
           FROM announcements
+          WHERE all_data_is_valid
           ORDER BY block_number DESC
           OFFSET $1 LIMIT $2
         `;
