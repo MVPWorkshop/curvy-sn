@@ -98,9 +98,16 @@ export class StarknetController implements AppRoute {
     const size = parseInt(req.query.size as string, 10) || 10;
 
     try {
-      const result = await this.indexer.getHistory(offset, size);
+      const history = await this.indexer.getHistory(offset, size);
+      const totalCount = await this.indexer.getHistoryCount();
 
-      res.status(200).json({ data: result, error: null });
+      res.status(200).json({
+        data: {
+          history,
+          totalCount
+        }
+        , error: null
+      });
     } catch (err: any) {
       console.error("Error fetching info:", err);
       res.status(500).json({ data: null, error: "Internal server error" });

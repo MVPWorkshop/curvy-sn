@@ -175,6 +175,13 @@ export class Indexer {
         return result.rows;
     }
 
+    public async getHistoryCount() {
+        const query = `SELECT COUNT(*) AS total FROM announcements`;
+
+        const result = await this.pool.query(query);
+        return parseInt(result.rows[0].total, 10);
+    }
+
     public async getTransfers(addresses: string[]) {
         const query = `
             SELECT 
