@@ -1,91 +1,111 @@
-#[starknet::contract]
-mod CurvyMetaRegistryV0 {
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        let name = "CurvyMetaRegistryV0";
-        let symbol = "CMRV0";
-        let base_uri = "https://cmr.0xcurvy.io/v0/";
+/// Curvy Protocol V0: Meta Registry Contract
+use starknet::{ContractAddress};
 
-        self.erc721.initializer(name, symbol, base_uri);
-    }
+#[starknet::contract]
+pub mod CurvyMetaRegistryV0 {
+    #[constructor]
+    fn constructor(ref self: ContractState) {}
 
     #[abi(embed_v0)]
     impl Core of super::ICurvyMetaRegistry_Core<ContractState> {
+        /// Registers a new (available) Meta Id and ties it to the caller
+        /// Dev: Reverts if the Meta Id already exists
+        /// Params:
+        ///     meta_id: Id to be registered
+        ///     meta_address: Meta Address that contains both spending and viewing public key
+        /// Returns:
+        ///     None
         fn register(ref self: ContractState, meta_id: felt252, meta_address: ByteArray) {
-            // let owner_of_meta_id = self.erc721.owner_of(meta_id.into());
+            assert(self.get_meta_id_owner(meta_id).is_zero(), 'Meta ID exists!');
 
-            // assert(owner_of_meta_id.is_zero(), 'Meta ID already registered');
+            let caller = get_caller_address();
 
-            // let recipient = get_caller_address();
+            self.meta_id_owner.write(meta_id.into(), caller);
 
-            self.meta_addresses.write(meta_id.into(), meta_address.clone());
-            // self.erc721.mint(recipient, meta_id.into());
-
-            self.emit(MetaIdRegistered{meta_id});
+            self.emit(MetaAddressSet { meta_id, owner: caller });
         }
 
+        /// Sets Meta Address to a new value for a passed down Meta Id
+        /// Dev: Reverts if caller is not the owner of that id
+        /// Params:
+        ///     meta_id: Id to be registered
+        ///     meta_address: Meta Address that contains both spending and viewing public key
+        /// Returns:
+        ///     None
         fn set_meta_address(ref self: ContractState, meta_id: felt252, meta_address: ByteArray) {
-            // assert(
-            //     self.erc721.owner_of(meta_id.into()) == get_caller_address(),
-            //     'Not the owner of Meta ID',
-            // );
+            let caller = get_caller_address();
 
-            self.meta_addresses.write(meta_id.into(), meta_address.clone());
+            assert(self.get_meta_id_owner(meta_id) == caller, 'Not the owner!');
+
+            self.emit(MetaAddressSet { meta_id, owner: caller });
+        }
+
+        /// Returns the owner of the passed down Meta Id
+        /// Params:
+        ///     meta_id: Id for which to return the owner
+        /// Returns:
+        ///     ContractAddress: Meta Id's owner address
+        fn get_meta_id_owner(self: @ContractState, meta_id: felt252) -> ContractAddress {
+            self.meta_id_owner.read(meta_id)
+        }
+
+        /// Transfer the ownership of the Meta Id to someone else
+        /// Dev: Reverts if the caller is not the current owner
+        /// Params:
+        ///     meta_id: Id that will be transfered
+        ///     new_owner: Address of the new owner
+        /// Returns:
+        ///     None
+        fn transfer_meta_id(ref self: ContractState, meta_id: felt252, new_owner: ContractAddress) {
+            let caller = get_caller_address();
+
+            assert(self.get_meta_id_owner(meta_id) == caller, 'Not the owner!');
+
+            self.meta_id_owner.write(meta_id.into(), new_owner);
+
+            self.emit(MetaIdTransfered { meta_id, old_owner: caller, new_owner });
         }
     }
 
-    use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
     use starknet::{ContractAddress, get_caller_address};
-
-    use core::num::traits::Zero;
-    use core::poseidon::PoseidonTrait;
-    use core::hash::{HashStateTrait, HashStateExTrait};
-
     use starknet::storage::{Map, StorageMapReadAccess, StorageMapWriteAccess};
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-
-    component!(path: ERC721Component, storage: erc721, event: ERC721Event);
-    component!(path: SRC5Component, storage: src5, event: SRC5Event);
-
-    // ERC721 Mixin
-    #[abi(embed_v0)]
-    impl ERC721MixinImpl = ERC721Component::ERC721MixinImpl<ContractState>;
-    impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
+    use core::num::traits::Zero;
 
     #[storage]
     struct Storage {
-        #[substorage(v0)]
-        erc721: ERC721Component::Storage,
-        #[substorage(v0)]
-        src5: SRC5Component::Storage,
-        /// Meta ID mapping to Meta Address
-        pub meta_addresses: Map<u256, ByteArray>,
-
-        pub meta_id_counter: felt252,
+        /// Meta ID mapping to the owner
+        pub meta_id_owner: Map<felt252, ContractAddress>,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
-        #[flat]
-        ERC721Event: ERC721Component::Event,
-        #[flat]
-        SRC5Event: SRC5Component::Event,
-
-        MetaIdRegistered: MetaIdRegistered,
+        MetaAddressSet: MetaAddressSet,
+        MetaIdTransfered: MetaIdTransfered,
     }
 
     #[derive(Drop, starknet::Event)]
-    pub struct MetaIdRegistered {
+    pub struct MetaAddressSet {
         meta_id: felt252,
+        owner: ContractAddress,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct MetaIdTransfered {
+        meta_id: felt252,
+        old_owner: ContractAddress,
+        new_owner: ContractAddress,
     }
 }
 
 
 #[starknet::interface]
-trait ICurvyMetaRegistry_Core<TContractState> {
+pub trait ICurvyMetaRegistry_Core<TContractState> {
     fn register(ref self: TContractState, meta_id: felt252, meta_address: ByteArray);
 
     fn set_meta_address(ref self: TContractState, meta_id: felt252, meta_address: ByteArray);
+
+    fn get_meta_id_owner(self: @TContractState, meta_id: felt252) -> ContractAddress;
+
+    fn transfer_meta_id(ref self: TContractState, meta_id: felt252, new_owner: ContractAddress);
 }
