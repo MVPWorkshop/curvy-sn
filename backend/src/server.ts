@@ -23,7 +23,7 @@ export class Server {
 
     private configureMiddleware() {
         this.app.use(json({ limit: "50mb" }));
-        this.app.use(urlencoded({ limit: "50mb", extended: true }));
+        this.app.use(urlencoded({ limit: "50mb", extended: false }));
     }
 
     private configureRoutes() {

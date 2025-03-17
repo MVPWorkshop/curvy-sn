@@ -78,8 +78,6 @@ export class Indexer {
             (await isValidViewTag(viewTag)) &&
             (await isValidSECP256k1Point(stealthAccountPublicKey));
 
-        console.log({ allDataIsValid });
-
         const query = `
           INSERT INTO announcements
               (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid)
@@ -110,6 +108,42 @@ export class Indexer {
         }
     }
 
+    public async saveAnnouncementInfo(
+        ephemeralPublicKey: string,
+        viewTag: string,
+        stealthAccountPublicKey: string,
+        stealthAccountAddress: string
+    ) {
+        const query = `
+          INSERT INTO announcements
+              (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid)
+          VALUES
+              ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10)
+          ON CONFLICT DO NOTHING;
+        `;
+        const values = [
+            "no-sender-yet",
+            stealthAccountAddress,
+            "no-amount-yet",
+            ephemeralPublicKey,
+            viewTag,
+            stealthAccountPublicKey,
+            stealthAccountAddress,
+            0,
+            "no-hash-yet",
+            true,
+        ];
+
+        console.log(`Inserting...`, { values });
+
+        try {
+            await this.pool.query(query, values);
+            console.log(`Inserted announcement event`);
+        } catch (err) {
+            console.error("Error inserting announcement event:", err);
+        }
+    }
+
     private async handleMetaEvent(data: ListenerData) {
         const { raw, tx, decoded } = data;
 
@@ -125,8 +159,7 @@ export class Indexer {
         const blockNumber = raw.block_number;
         const hash = raw.transaction_hash;
 
-        let allDataIsValid = await isValidMetaAddress(metaAddress);
-        console.log({ allDataIsValid });
+        const allDataIsValid = await isValidMetaAddress(metaAddress);
 
         const query = `
           INSERT INTO meta_addresses_registry
@@ -183,7 +216,7 @@ export class Indexer {
 
     public async getInfo(offset: number, size: number) {
         const query = `
-          SELECT 
+          SELECT
               ephemeral_public_key AS "ephemeralKeys",
               view_tag AS "viewTag",
               stealth_address AS "stealthAddress"

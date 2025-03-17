@@ -23,6 +23,18 @@ func TestIsInValidBN254Point (t *testing.T) {
 	if(utils.IsValidBN254Point(Vstr)) { panic("ERR: Valid point"); }
 }
 
+func TestIsValidSECP256k1Point(t * testing.T) {
+
+	_, K := utils.SECP256k_Gen1G1KeyPair()
+	Kstr := utils.PackXY(K.X.String(), K.Y.String())
+	if(!utils.IsValidSECP256k1Point(Kstr)) { panic("ERR: Invalid point"); }
+}
+
+func TestIsInValidSECP256k1Point(t * testing.T) {
+	Kstr := "invalid.123"
+	if(utils.IsValidSECP256k1Point(Kstr)) { panic("ERR: Valid point"); }
+}
+
 func TestSend(t *testing.T) {
 
 	_, K := utils.SECP256k_Gen1G1KeyPair()
