@@ -24,8 +24,12 @@ export class StarknetController implements AppRoute {
       this.resolveMetaId(req, res);
     });
 
-    this.router.get("/info", cors(), (req, res) => {
-      this.getInfo(req, res);
+    this.router.get("/history", cors(), (req, res) => {
+      this.getHistory(req, res);
+    })
+
+    this.router.post("/transfers", cors(), (req, res) => {
+      this.getTransfers(req, res);
     })
   }
 
@@ -89,16 +93,33 @@ export class StarknetController implements AppRoute {
     return;
   }
 
-  public async getInfo(req: Request, res: Response) {
+  public async getHistory(req: Request, res: Response) {
     const offset = parseInt(req.query.offset as string, 10) || 0;
     const size = parseInt(req.query.size as string, 10) || 10;
 
     try {
-      const result = await this.indexer.getInfo(offset, size);
+      const result = await this.indexer.getHistory(offset, size);
 
       res.status(200).json({ data: result, error: null });
     } catch (err: any) {
       console.error("Error fetching info:", err);
+      res.status(500).json({ data: null, error: "Internal server error" });
+    }
+  }
+
+  public async getTransfers(req: Request, res: Response) {
+    const { addresses } = req.body;
+
+    if (!addresses || !Array.isArray(addresses) || addresses.length === 0) {
+      res.status(400).json({ data: null, error: "A non-empty addresses array is required." });
+      return;
+    }
+
+    try {
+      const result = await this.indexer.getTransfers(addresses)
+      res.status(200).json({ data: result, error: null });
+    } catch (err: any) {
+      console.error("Error fetching transfers:", err);
       res.status(500).json({ data: null, error: "Internal server error" });
     }
   }
