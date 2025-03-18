@@ -98,7 +98,7 @@ export class Indexer {
             allDataIsValid,
         ];
 
-        console.log(`Inserting...`, { values });
+        // console.log(`Inserting...`, { values });
 
         try {
             await this.pool.query(query, values);
@@ -134,7 +134,7 @@ export class Indexer {
             true,
         ];
 
-        console.log(`Inserting...`, { values });
+        // console.log(`Inserting...`, { values });
 
         try {
             await this.pool.query(query, values);
@@ -178,7 +178,7 @@ export class Indexer {
             allDataIsValid,
         ];
 
-        console.log(`Inserting...`, { values });
+        // console.log(`Inserting...`, { values });
 
         try {
             await this.pool.query(query, values);
