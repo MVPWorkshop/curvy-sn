@@ -23,8 +23,7 @@ For examples see: `./ref-usage/examples.js`
 ```javascript
 // Input:
 //  None
-await globalThis.new_meta();
-let recipientInfo = globalThis.recipient_meta;
+let recipientInfo = await globalThis.new_meta();
 console.log(recipientInfo);
 // Output (json string):
 // {
@@ -44,9 +43,9 @@ console.log(recipientInfo);
 //   "v": "...", // Private viewing key
 // }
 const { k, v } = JSON.parse(recipientInfo);
-globalThis.get_meta_data = JSON.stringify({ k, v });
-await globalThis.get_meta();
-let reconstructedRecipientInfo = JSON.parse(globalThis.recipient_meta);
+let reconstructedRecipientInfo = await globalThis.get_meta(
+    JSON.stringify({ k, v })
+);
 console.log(reconstructedRecipientInfo);
 // Output (json string):
 // {
@@ -65,10 +64,8 @@ console.log(reconstructedRecipientInfo);
 //   "K": "X.Y", // Public spending key encoded as: "X.Y" where X and Y are affine coordinates
 //   "V": "X.Y"  // Public viewing key encoded as: "X.Y" where X and Y are affine coordinates
 // }
-const { K, V } = reconstructedRecipientInfo;
-globalThis.send_data = JSON.stringify({ K, V });
-await globalThis.send();
-const senderInfo = JSON.parse(globalThis.sender_meta);
+const { K, V } = JSON.parse(reconstructedRecipientInfo);
+const senderInfo = JSON.parse(await globalThis.send(JSON.stringify({ K, V })));
 console.log(senderInfo);
 // Output (json string):
 // {
@@ -91,9 +88,10 @@ console.log(senderInfo);
 // }
 const Rs = [senderInfo.R];
 const viewTags = [senderInfo.viewTag];
-globalThis.scan_data = JSON.stringify({ k, v, Rs, viewTags });
-await globalThis.scan();
-const scanResponse = JSON.parse(globalThis.scan_meta);
+const scanResponseRaw = await globalThis.scan(
+    JSON.stringify({ k, v, Rs, viewTags })
+);
+const scanResponse = JSON.parse(scanResponseRaw);
 console.log(scanResponse);
 // Output (json string):
 // {
