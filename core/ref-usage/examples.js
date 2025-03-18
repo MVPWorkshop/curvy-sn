@@ -79,3 +79,25 @@ console.log(scanResponse);
 //                      encoded as: "X.Y" where X and Y are affine coordinates
 //   "spendingPrivKeys": ["..."] // List of corresponding private keys for the detected stealth accounts
 // }
+
+// Checks whether a BN254 Point is valid
+// Input:
+//  point: "X.Y" where X and Y are affine coordinates
+const validBN254Point = senderInfo.R;
+globalThis.dbg_isValidBN254Point_input = validBN254Point;
+await globalThis.dbg_isValidBN254Point();
+const validPointRes = globalThis.dbg_isValidBN254Point_res;
+console.log({ validPointRes });
+// Output:
+//  res: bool (is valid or not)
+
+// Checks whether a SECP256k1 Point is valid
+// Input:
+//  point: "X.Y" where X and Y are affine coordinates
+const validSECP256k1 = K;
+globalThis.dbg_isValidSECP256k1Point_input = validSECP256k1;
+await globalThis.dbg_isValidSECP256k1Point();
+const secp2561ValidPointRes = globalThis.dbg_isValidSECP256k1Point_res;
+console.log({ secp2561ValidPointRes });
+// Output:
+//  res: bool (is valid or not)

@@ -9,6 +9,32 @@ import (
 	"testing"
 )
 
+func TestIsValidBN254Point (t *testing.T) {
+
+	_, V, _ := utils.BN254_GenG1KeyPair()
+	Vstr := utils.PackXY(V.X.String(), V.Y.String())
+
+	if(!utils.IsValidBN254Point(Vstr)) { panic("ERR: Invalid point"); }
+}
+
+func TestIsInValidBN254Point (t *testing.T) {
+
+	Vstr := utils.PackXY("test1", "22")
+	if(utils.IsValidBN254Point(Vstr)) { panic("ERR: Valid point"); }
+}
+
+func TestIsValidSECP256k1Point(t * testing.T) {
+
+	_, K := utils.SECP256k_Gen1G1KeyPair()
+	Kstr := utils.PackXY(K.X.String(), K.Y.String())
+	if(!utils.IsValidSECP256k1Point(Kstr)) { panic("ERR: Invalid point"); }
+}
+
+func TestIsInValidSECP256k1Point(t * testing.T) {
+	Kstr := "invalid.123"
+	if(utils.IsValidSECP256k1Point(Kstr)) { panic("ERR: Valid point"); }
+}
+
 func TestSend(t *testing.T) {
 
 	_, K := utils.SECP256k_Gen1G1KeyPair()
@@ -42,3 +68,5 @@ func TestE2E(t *testing.T) {
 
 	fmt.Println("receiveOutput", receiveOutput)
 }
+
+
