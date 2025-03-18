@@ -2,7 +2,7 @@ import fs from "fs";
 import "./wasm_exec.js";
 
 const go = new globalThis.Go();
-const wasmBuffer = fs.readFileSync("../curvy-core.wasm");
+const wasmBuffer = fs.readFileSync("./curvy-core.wasm");
 
 const wasmModule = await WebAssembly.instantiate(wasmBuffer, go.importObject);
 go.run(wasmModule.instance);
@@ -10,8 +10,7 @@ go.run(wasmModule.instance);
 // Generates new Meta Address information (with private keys)
 // Input:
 //  None
-await globalThis.new_meta();
-let recipientInfo = globalThis.recipient_meta;
+let recipientInfo = await globalThis.new_meta();
 console.log(recipientInfo);
 // Output (json string):
 // {
@@ -28,9 +27,9 @@ console.log(recipientInfo);
 //   "v": "...", // Private viewing key
 // }
 const { k, v } = JSON.parse(recipientInfo);
-globalThis.get_meta_data = JSON.stringify({ k, v });
-await globalThis.get_meta();
-let reconstructedRecipientInfo = JSON.parse(globalThis.recipient_meta);
+let reconstructedRecipientInfo = await globalThis.get_meta(
+    JSON.stringify({ k, v })
+);
 console.log(reconstructedRecipientInfo);
 // Output (json string):
 // {
@@ -46,10 +45,8 @@ console.log(reconstructedRecipientInfo);
 //   "K": "X.Y", // Public spending key encoded as: "X.Y" where X and Y are affine coordinates
 //   "V": "X.Y"  // Public viewing key encoded as: "X.Y" where X and Y are affine coordinates
 // }
-const { K, V } = reconstructedRecipientInfo;
-globalThis.send_data = JSON.stringify({ K, V });
-await globalThis.send();
-const senderInfo = JSON.parse(globalThis.sender_meta);
+const { K, V } = JSON.parse(reconstructedRecipientInfo);
+const senderInfo = JSON.parse(await globalThis.send(JSON.stringify({ K, V })));
 console.log(senderInfo);
 // Output (json string):
 // {
@@ -69,9 +66,10 @@ console.log(senderInfo);
 // }
 const Rs = [senderInfo.R];
 const viewTags = [senderInfo.viewTag];
-globalThis.scan_data = JSON.stringify({ k, v, Rs, viewTags });
-await globalThis.scan();
-const scanResponse = JSON.parse(globalThis.scan_meta);
+const scanResponseRaw = await globalThis.scan(
+    JSON.stringify({ k, v, Rs, viewTags })
+);
+const scanResponse = JSON.parse(scanResponseRaw);
 console.log(scanResponse);
 // Output (json string):
 // {
@@ -84,9 +82,7 @@ console.log(scanResponse);
 // Input:
 //  point: "X.Y" where X and Y are affine coordinates
 const validBN254Point = senderInfo.R;
-globalThis.dbg_isValidBN254Point_input = validBN254Point;
-await globalThis.dbg_isValidBN254Point();
-const validPointRes = globalThis.dbg_isValidBN254Point_res;
+const validPointRes = await globalThis.dbg_isValidBN254Point(validBN254Point);
 console.log({ validPointRes });
 // Output:
 //  res: bool (is valid or not)
@@ -95,9 +91,9 @@ console.log({ validPointRes });
 // Input:
 //  point: "X.Y" where X and Y are affine coordinates
 const validSECP256k1 = K;
-globalThis.dbg_isValidSECP256k1Point_input = validSECP256k1;
-await globalThis.dbg_isValidSECP256k1Point();
-const secp2561ValidPointRes = globalThis.dbg_isValidSECP256k1Point_res;
+const secp2561ValidPointRes = await globalThis.dbg_isValidSECP256k1Point(
+    validSECP256k1
+);
 console.log({ secp2561ValidPointRes });
 // Output:
 //  res: bool (is valid or not)

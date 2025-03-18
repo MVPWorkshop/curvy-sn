@@ -24,31 +24,24 @@ func main() {
 }
 
 func newMeta(in js.Value, args []js.Value) interface{} {
-	js.Global().Set("recipient_meta", recipient.NewMeta())
-	return nil
+	return recipient.NewMeta()
 }
 
 func getMeta(in js.Value, args []js.Value) interface{} {
-	tmp := js.Global().Get("get_meta_data").String()
-	js.Global().Set("recipient_meta", recipient.GetMeta(tmp))
-	return nil
+	return recipient.GetMeta(args[0].String())
 }
 
 func send(in js.Value, args []js.Value) interface{} {
-	js.Global().Set("sender_meta", sender.Send(js.Global().Get("send_data").String()))
-	return nil
+	return sender.Send(args[0].String())
 }
 
 func scan(in js.Value, args []js.Value) interface{} {
-	js.Global().Set("scan_meta", recipient.Scan(js.Global().Get("scan_data").String()))
-	return nil
+	return recipient.Scan(args[0].String())
 }
 
 func isValidBN254Point(in js.Value, args []js.Value) interface{} {
-	js.Global().Set("dbg_isValidBN254Point_res", utils.IsValidBN254Point(js.Global().Get("dbg_isValidBN254Point_input").String()))
-	return nil
+	return utils.IsValidBN254Point(args[0].String())
 }
 func isValidSECP256k1Point(in js.Value, args []js.Value) interface{} {
-	js.Global().Set("dbg_isValidSECP256k1Point_res", utils.IsValidSECP256k1Point(js.Global().Get("dbg_isValidSECP256k1Point_input").String()))
-	return nil
+	return utils.IsValidSECP256k1Point(args[0].String())
 }
