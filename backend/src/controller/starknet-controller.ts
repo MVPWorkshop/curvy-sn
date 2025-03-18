@@ -23,27 +23,22 @@ export class StarknetController implements AppRoute {
 
         //endpoint
         this.router.get("/checkmeta/:metaId", cors(), (request, response) => {
-            console.log("Checking meta...");
             this.checkEndpoint(request, response);
         });
 
         this.router.get("/resolve/:address", cors(), (req, res) => {
-            console.log("Resolving address...");
             this.resolveMetaId(req, res);
         });
 
         this.router.post("/recordstealthinfo", cors(), (req, res) => {
-            console.log("Recording stealth info...");
             this.recordStealthInfo(req, res);
         });
 
         this.router.get("/history", cors(), (req, res) => {
-            console.log("History...");
             this.getHistory(req, res);
         });
 
         this.router.post("/transfers", cors(), (req, res) => {
-            console.log("Transfers...");
             this.getTransfers(req, res);
         });
     }
@@ -210,7 +205,6 @@ export class StarknetController implements AppRoute {
 
         for (const address of addresses) {
             try {
-                console.log(`validating:`, { address });
                 validateAndParseAddress(address);
             } catch (e) {
                 console.log(e);
