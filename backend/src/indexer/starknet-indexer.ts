@@ -98,11 +98,9 @@ export class Indexer {
             allDataIsValid,
         ];
 
-        console.log(`Inserting...`, { values });
-
         try {
             await this.pool.query(query, values);
-            console.log(`Inserted announcement event ${hash}`);
+            // console.log(`Inserted announcement event ${hash}`);
         } catch (err) {
             console.error("Error inserting announcement event:", err);
         }
@@ -134,11 +132,9 @@ export class Indexer {
             true,
         ];
 
-        console.log(`Inserting...`, { values });
-
         try {
             await this.pool.query(query, values);
-            console.log(`Inserted announcement event`);
+            // console.log(`Inserted announcement event`);
         } catch (err) {
             console.error("Error inserting announcement event:", err);
         }
@@ -178,11 +174,9 @@ export class Indexer {
             allDataIsValid,
         ];
 
-        console.log(`Inserting...`, { values });
-
         try {
             await this.pool.query(query, values);
-            console.log(`Inserted meta event ${hash}`);
+            // console.log(`Inserted meta event ${hash}`);
         } catch (err) {
             console.error("Error inserting meta event:", err);
         }

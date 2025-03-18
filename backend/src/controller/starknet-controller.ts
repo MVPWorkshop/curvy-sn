@@ -30,7 +30,7 @@ export class StarknetController implements AppRoute {
             this.resolveMetaId(req, res);
         });
 
-        this.router.post("/recordstealthinfo", (req, res) => {
+        this.router.post("/recordstealthinfo", cors(), (req, res) => {
             this.recordStealthInfo(req, res);
         });
 
@@ -201,6 +201,19 @@ export class StarknetController implements AppRoute {
                 error: "A non-empty addresses array is required.",
             });
             return;
+        }
+
+        for (const address of addresses) {
+            try {
+                validateAndParseAddress(address);
+            } catch (e) {
+                console.log(e);
+                res.status(400).json({
+                    data: null,
+                    error: `Passed address: ${address} is not valid.`,
+                });
+                return;
+            }
         }
 
         try {

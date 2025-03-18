@@ -20,4 +20,4 @@ RUN npx tsc
 EXPOSE 4000
 
 # Command to run your application
-CMD ["node", "build/start.js"]
+CMD ["node", "build/src/start.js"]
