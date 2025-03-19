@@ -208,7 +208,7 @@ export class Indexer {
         return result.rows.length === 0 ? null : result.rows[0];
     }
 
-    public async getHistory(offset: number, size: number) {
+    public async getInfo(offset: number, size: number) {
         const query = `
           SELECT
               ephemeral_public_key AS "ephemeralKeys",

@@ -34,8 +34,8 @@ export class StarknetController implements AppRoute {
             this.recordStealthInfo(req, res);
         });
 
-        this.router.get("/history", cors(), (req, res) => {
-            this.getHistory(req, res);
+        this.router.get("/info", cors(), (req, res) => {
+            this.getInfo(req, res);
         });
 
         this.router.post("/transfers", cors(), (req, res) => {
@@ -168,12 +168,12 @@ export class StarknetController implements AppRoute {
             });
         }
     }
-    public async getHistory(req: Request, res: Response) {
+    public async getInfo(req: Request, res: Response) {
         const offset = parseInt(req.query.offset as string, 10) || 0;
         const size = parseInt(req.query.size as string, 10) || 10;
 
         try {
-            const history = await this.indexer.getHistory(offset, size);
+            const history = await this.indexer.getInfo(offset, size);
             const totalCount = await this.indexer.getHistoryCount();
 
             res.status(200).json({
