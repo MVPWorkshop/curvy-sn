@@ -9,6 +9,7 @@ import {
     isValidSECP256k1Point,
     isValidViewTag,
 } from "../validation/curvy-utils";
+import { authenticateToken } from "../middlewares/jwt-auth";
 
 export class StarknetController implements AppRoute {
     public route: string = "/starknet";
@@ -20,6 +21,7 @@ export class StarknetController implements AppRoute {
         this.indexer.start();
 
         this.router.use(cors({ origin: "*" }));
+        this.router.use(authenticateToken);
 
         //endpoint
         this.router.get("/checkmeta/:metaId", cors(), (request, response) => {
@@ -173,12 +175,12 @@ export class StarknetController implements AppRoute {
         const size = parseInt(req.query.size as string, 10) || 10;
 
         try {
-            const history = await this.indexer.getInfo(offset, size);
-            const totalCount = await this.indexer.getHistoryCount();
+            const info = await this.indexer.getInfo(offset, size);
+            const totalCount = await this.indexer.getInfoCount();
 
             res.status(200).json({
                 data: {
-                    history,
+                    info,
                     totalCount,
                 },
                 error: null,

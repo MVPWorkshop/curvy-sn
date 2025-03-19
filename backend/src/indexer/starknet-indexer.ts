@@ -224,7 +224,7 @@ export class Indexer {
         return result.rows;
     }
 
-    public async getHistoryCount() {
+    public async getInfoCount() {
         const query = `SELECT COUNT(*) AS total FROM announcements`;
 
         const result = await this.pool.query(query);
