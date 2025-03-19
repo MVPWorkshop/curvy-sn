@@ -1,5 +1,9 @@
 # Curvy Indexer API
 
+![image](https://github.com/user-attachments/assets/ed15bca2-7c8b-4d90-a43e-251cacf71611)
+
+## Overview
+
 This part of the repository contains imlpementation code for Curvy Indexer API on Starknet. The code
 represents a backend server implemented with Express and PostgreSQL. The server provides an API and also
 an Indexer component which listens for every event emitted by our smart contracts, which we later store 
