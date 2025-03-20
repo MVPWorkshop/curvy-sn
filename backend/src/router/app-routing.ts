@@ -19,7 +19,7 @@ export class AppRouting {
                 announcer: {
                     rpcUrl: process.env.RPC_URL!,
                     contractAddress: process.env.ANNOUNCER_ADDRESS!,
-                    fromBlock: 0,
+                    fromBlock: -1,
                     chunkSize: 15,
                     abi: announcerArtifact.abi,
                     decodeParameters: [
@@ -32,7 +32,7 @@ export class AppRouting {
                 metaRegistry: {
                     rpcUrl: process.env.RPC_URL!,
                     contractAddress: process.env.META_REGISTRY_ADDRESS!,
-                    fromBlock: 0,
+                    fromBlock: -1,
                     chunkSize: 10,
                     abi: metaRegistryArtifact.abi,
                     decodeParameters: [

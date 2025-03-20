@@ -23,3 +23,8 @@ CREATE TABLE IF NOT EXISTS announcements (
     hash TEXT NOT NULL,
     all_data_is_valid BOOLEAN NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS indexer_progress (
+    contract_address TEXT NOT NULL,
+    latest_block BIGINT NOT NULL
+);

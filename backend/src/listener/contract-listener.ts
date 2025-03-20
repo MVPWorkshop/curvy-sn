@@ -14,17 +14,22 @@ export class ContractListener extends EventEmitter {
     private pollingInterval: number;
     private lastBlock: number;
     private timer?: NodeJS.Timeout;
+    private pollingMutexTaken: boolean;
 
     constructor(options: ContractListenerOptions, pollingInterval = 1000) {
         super();
         this.options = options;
         this.pollingInterval = pollingInterval;
         this.lastBlock = options.fromBlock;
+        this.pollingMutexTaken = false;
     }
 
     private async pollEvents() {
+        if (this.pollingMutexTaken) return;
+        this.pollingMutexTaken = true;
+
         console.log(
-            `Polling events for contract ${this.options.contractAddress}`
+            `Polling events for contract ${this.options.contractAddress}, latest_block: ${this.lastBlock}`
         );
         try {
             const events = await this.fetchEvents();
@@ -39,10 +44,13 @@ export class ContractListener extends EventEmitter {
 
             const latestEvent = events[events.length - 1];
             this.lastBlock = (latestEvent.block_number || this.lastBlock) + 1;
+            this.emit("latest_block", this.lastBlock);
         } catch (e: any) {
             this.emit("error", e);
             console.error(e);
         }
+
+        this.pollingMutexTaken = false;
     }
 
     private async fetchEvents(): Promise<ContractEvent[]> {
