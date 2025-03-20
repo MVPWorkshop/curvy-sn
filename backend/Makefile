@@ -1,7 +1,7 @@
 stress-test-200:
 	docker compose up -d --build && \
 	sleep 3 && \
-	k6 run ./test/stress-test/stress-test.400.js && \
+	k6 run ./test/stress-test/stress-test.200.js && \
 	docker compose down -v
 
 stress-test-400:
