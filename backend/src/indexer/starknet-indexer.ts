@@ -11,39 +11,51 @@ import {
 
 export class Indexer {
     private pool: Pool;
-    private announcerListener: ContractListener;
-    private metaListener: ContractListener;
+    private announcerListener: ContractListener | any;
+    private metaListener: ContractListener | any;
     private options: IndexerOptions;
 
     constructor(options: IndexerOptions) {
         this.options = options;
         this.pool = new Pool(this.options.dbConfig);
-
+    }
+    public async start() {
         this.announcerListener = new ContractListener({
-            rpcUrl: options.rpcUrl,
-            contractAddress: options.announcer.contractAddress,
-            fromBlock: options.announcer.fromBlock,
-            abi: options.announcer.abi,
-            decodeParameters: options.announcer.decodeParameters,
-            chunkSize: options.announcer.chunkSize,
+            rpcUrl: this.options.rpcUrl,
+            contractAddress: this.options.announcer.contractAddress,
+            fromBlock: await this.determineActualFromBlock(
+                this.options.announcer.contractAddress
+            ),
+            abi: this.options.announcer.abi,
+            decodeParameters: this.options.announcer.decodeParameters,
+            chunkSize: this.options.announcer.chunkSize,
         });
 
         this.metaListener = new ContractListener({
-            rpcUrl: options.rpcUrl,
-            contractAddress: options.metaRegistry.contractAddress,
-            fromBlock: options.metaRegistry.fromBlock,
-            abi: options.metaRegistry.abi,
-            decodeParameters: options.metaRegistry.decodeParameters,
-            chunkSize: options.metaRegistry.chunkSize,
+            rpcUrl: this.options.rpcUrl,
+            contractAddress: this.options.metaRegistry.contractAddress,
+            fromBlock: await this.determineActualFromBlock(
+                this.options.metaRegistry.contractAddress
+            ),
+            abi: this.options.metaRegistry.abi,
+            decodeParameters: this.options.metaRegistry.decodeParameters,
+            chunkSize: this.options.metaRegistry.chunkSize,
         });
-    }
 
-    public start() {
         // Subscribe to announcer events.
         this.announcerListener.on("event", async (data: ListenerData) => {
             await this.handleAnnouncerEvent(data);
         });
-        this.announcerListener.on("error", (err) => {
+        this.announcerListener.on(
+            "latest_block",
+            async (latestBlock: number) => {
+                await this.saveProgress(
+                    this.options.announcer.contractAddress,
+                    latestBlock
+                );
+            }
+        );
+        this.announcerListener.on("error", (err: Error) => {
             console.error("Announcer Listener Error:", err);
         });
         this.announcerListener.start();
@@ -52,7 +64,13 @@ export class Indexer {
         this.metaListener.on("event", async (data: ListenerData) => {
             await this.handleMetaEvent(data);
         });
-        this.metaListener.on("error", (err) => {
+        this.metaListener.on("latest_block", async (latestBlock: number) => {
+            await this.saveProgress(
+                this.options.metaRegistry.contractAddress,
+                latestBlock
+            );
+        });
+        this.metaListener.on("error", (err: Error) => {
             console.error("Meta Listener Error:", err);
         });
         this.metaListener.start();
@@ -225,7 +243,7 @@ export class Indexer {
     }
 
     public async getHistoryCount() {
-        const query = `SELECT COUNT(*) AS total FROM announcements`;
+        const query = `SELECT COUNT(*) AS total FROM announcements WHERE all_data_is_valid`;
 
         const result = await this.pool.query(query);
         return parseInt(result.rows[0].total, 10);
@@ -244,5 +262,47 @@ export class Indexer {
 
         const result = await this.pool.query(query, [addresses]);
         return result.rows;
+    }
+
+    public async getProgress(contractAddress: string) {
+        const query = `
+            SELECT * FROM indexer_progress
+            WHERE contract_address = TEXT($1)
+        `;
+
+        const result = await this.pool.query(query, [contractAddress]);
+        return result;
+    }
+
+    private async determineActualFromBlock(
+        contractAddress: string
+    ): Promise<number> {
+        const insertQuery = `
+            INSERT INTO indexer_progress
+                (contract_address, latest_block)
+            VALUES
+                ($1, $2)
+            ON CONFLICT DO NOTHING;
+        `;
+
+        const res = await this.getProgress(contractAddress);
+        if (res.rows.length === 0) {
+            // Initial start - no record in the DB
+            await this.pool.query(insertQuery, [contractAddress, 0]);
+            return 0;
+        }
+
+        return res.rows[0].latest_block;
+    }
+
+    public async saveProgress(contractAddress: string, latestBlock: number) {
+        const query = `
+            UPDATE indexer_progress
+                SET latest_block = ${latestBlock}
+            WHERE contract_address = TEXT($1);
+        `;
+
+        const result = await this.pool.query(query, [contractAddress]);
+        return result;
     }
 }
