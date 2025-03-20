@@ -1,24 +1,23 @@
 import { Router } from "express";
 import { AppRoute } from "./app-route";
-import { TestController } from "../controller/test-controller";
 import { StarknetController } from "../controller/starknet-controller";
 import announcerArtifact from "../artifacts/curvy_announcer_CurvyAnnouncerV0.contract_class.json";
 import metaRegistryArtifact from "../artifacts/curvy_meta_registry_CurvyMetaRegistryV0.contract_class.json";
+import { Config } from "../config";
 
 export class AppRouting {
-    constructor(private route: Router) {
+    constructor(private route: Router, private config: Config) {
         this.route = route;
         this.configure();
     }
 
     public configure() {
-        this.addRoute(new TestController());
         this.addRoute(
             new StarknetController({
-                rpcUrl: process.env.RPC_URL!,
+                rpcUrl: this.config.RpcUrl,
                 announcer: {
-                    rpcUrl: process.env.RPC_URL!,
-                    contractAddress: process.env.ANNOUNCER_ADDRESS!,
+                    rpcUrl: this.config.RpcUrl,
+                    contractAddress: this.config.AnnouncerAddress,
                     fromBlock: 0,
                     chunkSize: 15,
                     abi: announcerArtifact.abi,
@@ -30,8 +29,8 @@ export class AppRouting {
                     ],
                 },
                 metaRegistry: {
-                    rpcUrl: process.env.RPC_URL!,
-                    contractAddress: process.env.META_REGISTRY_ADDRESS!,
+                    rpcUrl: this.config.RpcUrl,
+                    contractAddress: this.config.MetaRegistryAddress,
                     fromBlock: 0,
                     chunkSize: 10,
                     abi: metaRegistryArtifact.abi,
@@ -40,15 +39,7 @@ export class AppRouting {
                         "core::byte_array::ByteArray",
                     ],
                 },
-                dbConfig: {
-                    host: process.env.PGHOST!,
-                    port: process.env.PGPORT
-                        ? parseInt(process.env.PGPORT)
-                        : 5432,
-                    user: process.env.PGUSER!,
-                    password: process.env.PGPASSWORD!,
-                    database: process.env.PGDATABASE!,
-                },
+                dbConfig: this.config.Database,
             })
         );
     }

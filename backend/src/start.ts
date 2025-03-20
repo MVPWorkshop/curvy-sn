@@ -1,7 +1,16 @@
+import { initConfig } from "./config";
 import { Server } from "./server";
-const server = new Server();
 
-server.run();
+let app: import("express").Express;
 
-const app = server.app;
+try {
+  const config = initConfig();
+  const server = new Server(config);
+  server.run();
+  app = server.app;
+} catch (err) {
+  console.error("Configuration error:", err);
+  process.exit(1);
+}
+
 export { app };
