@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import * as http from "http";
 import { json, urlencoded } from "body-parser";
 import { AppRouting } from "./router/app-routing";
+import { Config } from "./config";
 
 const path = require("path");
 require("dotenv").config();
@@ -9,8 +10,10 @@ require("dotenv").config();
 export class Server {
     public app: express.Express;
     private router: Router;
+    private config: Config;
 
-    constructor() {
+    constructor(config: Config) {
+        this.config = config;
         this.app = express();
         this.router = express.Router();
         this.configure();
@@ -35,7 +38,7 @@ export class Server {
             );
         }
 
-        new AppRouting(this.router);
+        new AppRouting(this.router, this.config);
     }
 
     public run() {

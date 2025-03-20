@@ -1,3 +1,5 @@
+import { DBConfig } from "./config";
+
 export interface ParsedCall {
     contractAddress: string;
     entrypoint: string;
@@ -60,12 +62,4 @@ export interface ListenerData {
     tx: StarknetTransaction;
     decoded: any;
     tokenTransfers: Array<TokenTransfer>;
-}
-
-export interface DBConfig {
-    host: string;
-    port: number;
-    user: string;
-    password: string;
-    database: string;
 }

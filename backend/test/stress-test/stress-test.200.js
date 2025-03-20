@@ -12,6 +12,15 @@ import {
 
 export const options = defaultConfigOptions;
 
+const jwtToken = __ENV.JWT_TOKEN || "";
+
+const jsonHeaders = {
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwtToken}`,
+    },
+};
+
 export default function () {
     // 3. Test /recordstealthinfo endpoint with a sample payload.
     const recordPayload = JSON.stringify({
@@ -20,7 +29,6 @@ export default function () {
         stealthAccountPublicKey: randomSECP256k1Point(),
         stealthAccountAddress: randomStarknetAddress(),
     });
-    const jsonHeaders = { headers: { "Content-Type": "application/json" } };
     let res = http.post(
         `${BASE_URL}/recordstealthinfo`,
         recordPayload,
@@ -30,10 +38,10 @@ export default function () {
         "recordstealthinfo: status is 200": (r) => r.status === 200,
     });
 
-    // 4. Test /history endpoint with query parameters for pagination.
-    res = http.get(`${BASE_URL}/history?offset=0&size=10`);
+    // 4. Test /info endpoint with query parameters for pagination.
+    res = http.get(`${BASE_URL}/info?offset=0&size=10`, { headers: { "Authorization": `Bearer ${jwtToken}` } });
     check(res, {
-        "history: status is 200": (r) => r.status === 200,
+        "info: status is 200": (r) => r.status === 200,
     });
 
     // 5. Test /transfers endpoint with a sample payload containing addresses.

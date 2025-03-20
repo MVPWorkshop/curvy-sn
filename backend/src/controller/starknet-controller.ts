@@ -9,36 +9,38 @@ import {
     isValidSECP256k1Point,
     isValidViewTag,
 } from "../validation/curvy-utils";
+import { authenticateToken } from "../middlewares/jwt-auth";
 
 export class StarknetController implements AppRoute {
     public route: string = "/starknet";
     router: Router = Router();
     indexer: Indexer;
 
-    constructor(options: IndexerOptions) {
+    constructor(options: IndexerOptions, corsOrigin: string) {
         this.indexer = new Indexer(options);
         this.indexer.start();
 
-        this.router.use(cors({ origin: "*" }));
+        this.router.use(cors({ origin: corsOrigin }));
+        this.router.use(authenticateToken);
 
         //endpoint
-        this.router.get("/checkmeta/:metaId", cors(), (request, response) => {
+        this.router.get("/checkmeta/:metaId", (request, response) => {
             this.checkEndpoint(request, response);
         });
 
-        this.router.get("/resolve/:address", cors(), (req, res) => {
+        this.router.get("/resolve/:address", (req, res) => {
             this.resolveMetaId(req, res);
         });
 
-        this.router.post("/recordstealthinfo", cors(), (req, res) => {
+        this.router.post("/recordstealthinfo", (req, res) => {
             this.recordStealthInfo(req, res);
         });
 
-        this.router.get("/info", cors(), (req, res) => {
+        this.router.get("/info", (req, res) => {
             this.getInfo(req, res);
         });
 
-        this.router.post("/transfers", cors(), (req, res) => {
+        this.router.post("/transfers", (req, res) => {
             this.getTransfers(req, res);
         });
     }
@@ -168,17 +170,18 @@ export class StarknetController implements AppRoute {
             });
         }
     }
+
     public async getInfo(req: Request, res: Response) {
         const offset = parseInt(req.query.offset as string, 10) || 0;
         const size = parseInt(req.query.size as string, 10) || 10;
 
         try {
-            const history = await this.indexer.getInfo(offset, size);
-            const totalCount = await this.indexer.getHistoryCount();
+            const info = await this.indexer.getInfo(offset, size);
+            const totalCount = await this.indexer.getInfoCount();
 
             res.status(200).json({
                 data: {
-                    history,
+                    info,
                     totalCount,
                 },
                 error: null,

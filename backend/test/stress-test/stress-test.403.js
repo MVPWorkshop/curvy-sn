@@ -12,28 +12,32 @@ import {
 
 export const options = defaultConfigOptions;
 
-const jwtToken = __ENV.JWT_TOKEN || "";
+const jwtToken = "invalid_token";
 
 const jsonHeaders = {
     headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${jwtToken}`,
     },
 };
 
 export default function () {
     // 1. Test /checkmeta/:metaId endpoint
     const metaId = randomMetaId();
-    let res = http.get(`${BASE_URL}/checkmeta/${metaId}`, { headers: { "Authorization": `Bearer ${jwtToken}` } });
+    let res = http.get(`${BASE_URL}/checkmeta/${metaId}`, {
+        headers: { Authorization: `Bearer ${jwtToken}` },
+    });
     check(res, {
-        "checkmeta: status is 400": (r) => r.status === 400,
+        "checkmeta: status is 403": (r) => r.status === 403,
     });
 
     // 2. Test /resolve/:address endpoint with a sample address.
     const starknetAddress = randomStarknetAddress();
-    res = http.get(`${BASE_URL}/resolve/${starknetAddress}`, { headers: { "Authorization": `Bearer ${jwtToken}` } });
+    res = http.get(`${BASE_URL}/resolve/${starknetAddress}`, {
+        headers: { Authorization: `Bearer ${jwtToken}` },
+    });
     check(res, {
-        "resolve: status is 400": (r) => r.status === 400,
+        "resolve: status is 403": (r) => r.status === 403,
     });
 
     // 3. Test /recordstealthinfo endpoint with a sample payload.
@@ -44,7 +48,7 @@ export default function () {
         jsonHeaders
     );
     check(res, {
-        "recordstealthinfo: status is 400": (r) => r.status === 400,
+        "recordstealthinfo: status is 403": (r) => r.status === 403,
     });
 
     // 5. Test /transfers endpoint with a sample payload containing addresses.
@@ -53,7 +57,7 @@ export default function () {
     });
     res = http.post(`${BASE_URL}/transfers`, transfersPayload, jsonHeaders);
     check(res, {
-        "transfers: status is 400": (r) => r.status === 400,
+        "transfers: status is 403": (r) => r.status === 403,
     });
 
     // Wait 1 second between iterations to simulate user think time.
