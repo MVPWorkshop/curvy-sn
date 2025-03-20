@@ -13,6 +13,7 @@ export interface Config {
     MetaRegistryAddress: string;
     RpcUrl: string;
     JWTSecret: string;
+    StarknetCors: string;
 }
 
 function requireEnv(key: string): string {
@@ -39,6 +40,7 @@ function requireEnv(key: string): string {
       MetaRegistryAddress: requireEnv("META_REGISTRY_ADDRESS"),
       RpcUrl: requireEnv("RPC_URL"),
       JWTSecret: requireEnv("JWT_SECRET"),
+      StarknetCors: requireEnv("STARKNET_CORS")
     };
   
   

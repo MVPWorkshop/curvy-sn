@@ -40,7 +40,7 @@ export class AppRouting {
                     ],
                 },
                 dbConfig: this.config.Database,
-            })
+            }, this.config.StarknetCors)
         );
     }
 

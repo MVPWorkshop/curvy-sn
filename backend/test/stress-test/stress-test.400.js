@@ -12,24 +12,32 @@ import {
 
 export const options = defaultConfigOptions;
 
+const jwtToken = __ENV.JWT_TOKEN || "";
+
+const jsonHeaders = {
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${jwtToken}`,
+    },
+};
+
 export default function () {
     // 1. Test /checkmeta/:metaId endpoint
     const metaId = randomMetaId();
-    let res = http.get(`${BASE_URL}/checkmeta/${metaId}`);
+    let res = http.get(`${BASE_URL}/checkmeta/${metaId}`, { headers: { "Authorization": `Bearer ${jwtToken}` } });
     check(res, {
         "checkmeta: status is 400": (r) => r.status === 400,
     });
 
     // 2. Test /resolve/:address endpoint with a sample address.
     const starknetAddress = randomStarknetAddress();
-    res = http.get(`${BASE_URL}/resolve/${starknetAddress}`);
+    res = http.get(`${BASE_URL}/resolve/${starknetAddress}`, { headers: { "Authorization": `Bearer ${jwtToken}` } });
     check(res, {
         "resolve: status is 400": (r) => r.status === 400,
     });
 
     // 3. Test /recordstealthinfo endpoint with a sample payload.
     const invalidPayload = invalidRecordPayload();
-    const jsonHeaders = { headers: { "Content-Type": "application/json" } };
     res = http.post(
         `${BASE_URL}/recordstealthinfo`,
         invalidPayload,
