@@ -13,34 +13,37 @@ export class AppRouting {
 
     public configure() {
         this.addRoute(
-            new StarknetController({
-                rpcUrl: this.config.RpcUrl,
-                announcer: {
+            new StarknetController(
+                {
                     rpcUrl: this.config.RpcUrl,
-                    contractAddress: this.config.AnnouncerAddress,
-                    fromBlock: 0,
-                    chunkSize: 15,
-                    abi: announcerArtifact.abi,
-                    decodeParameters: [
-                        "core::byte_array::ByteArray",
-                        "core::byte_array::ByteArray",
-                        "core::byte_array::ByteArray",
-                        "core::starknet::contract_address::ContractAddress",
-                    ],
+                    announcer: {
+                        rpcUrl: process.env.RPC_URL!,
+                        contractAddress: process.env.ANNOUNCER_ADDRESS!,
+                        fromBlock: -1,
+                        chunkSize: 15,
+                        abi: announcerArtifact.abi,
+                        decodeParameters: [
+                            "core::byte_array::ByteArray",
+                            "core::byte_array::ByteArray",
+                            "core::byte_array::ByteArray",
+                            "core::starknet::contract_address::ContractAddress",
+                        ],
+                    },
+                    metaRegistry: {
+                        rpcUrl: process.env.RPC_URL!,
+                        contractAddress: process.env.META_REGISTRY_ADDRESS!,
+                        fromBlock: -1,
+                        chunkSize: 10,
+                        abi: metaRegistryArtifact.abi,
+                        decodeParameters: [
+                            "core::felt252",
+                            "core::byte_array::ByteArray",
+                        ],
+                    },
+                    dbConfig: this.config.Database,
                 },
-                metaRegistry: {
-                    rpcUrl: this.config.RpcUrl,
-                    contractAddress: this.config.MetaRegistryAddress,
-                    fromBlock: 0,
-                    chunkSize: 10,
-                    abi: metaRegistryArtifact.abi,
-                    decodeParameters: [
-                        "core::felt252",
-                        "core::byte_array::ByteArray",
-                    ],
-                },
-                dbConfig: this.config.Database,
-            }, this.config.StarknetCors)
+                this.config.StarknetCors
+            )
         );
     }
 
