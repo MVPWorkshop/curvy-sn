@@ -15,7 +15,7 @@ export class ContractListener extends EventEmitter {
     private lastBlock: number;
     private timer?: NodeJS.Timeout;
 
-    constructor(options: ContractListenerOptions, pollingInterval = 5000) {
+    constructor(options: ContractListenerOptions, pollingInterval = 1000) {
         super();
         this.options = options;
         this.pollingInterval = pollingInterval;
