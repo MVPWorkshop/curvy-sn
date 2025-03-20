@@ -177,7 +177,7 @@ export class StarknetController implements AppRoute {
 
         try {
             const info = await this.indexer.getInfo(offset, size);
-            const totalCount = await this.indexer.getHistoryCount();
+            const totalCount = await this.indexer.getInfoCount();
 
             res.status(200).json({
                 data: {
