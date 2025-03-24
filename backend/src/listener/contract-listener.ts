@@ -31,29 +31,49 @@ export class ContractListener extends EventEmitter {
         console.log(
             `Polling events for contract ${this.options.contractAddress}, latest_block: ${this.lastBlock}`
         );
-        try {
-            const events = await this.fetchEvents();
-            if (!events.length) return;
 
-            for (const event of events) {
-                const result = await this.processEvent(event);
-                if (result) {
-                    this.emit("event", result);
+        try {
+            const { events, latestBlock } = await this.fetchEvents();
+
+            // Always update lastBlock to the latest block fetched.
+            this.lastBlock = latestBlock;
+            this.emit("latest_block", this.lastBlock);
+
+            // Process events if any are returned.
+            if (events.length > 0) {
+                for (const event of events) {
+                    const result = await this.processEvent(event);
+                    if (result) {
+                        this.emit("event", result);
+                    }
                 }
             }
-
-            const latestEvent = events[events.length - 1];
-            this.lastBlock = (latestEvent.block_number || this.lastBlock) + 1;
-            this.emit("latest_block", this.lastBlock);
         } catch (e: any) {
             this.emit("error", e);
             console.error(e);
-        }finally {
+        } finally {
             this.pollingMutexTaken = false;
         }
     }
 
-    private async fetchEvents(): Promise<ContractEvent[]> {
+    private async fetchEvents(): Promise<{ events: ContractEvent[]; latestBlock: number }> {
+        const blockReqBody = {
+            id: 1,
+            jsonrpc: "2.0",
+            method: "starknet_blockNumber",
+        };
+
+        const blockRes = await fetch(this.options.rpcUrl, {
+            method: "POST",
+            headers: {
+                accept: "application/json",
+                "content-type": "application/json",
+            },
+            body: JSON.stringify(blockReqBody),
+        });
+        const blockData = await blockRes.json();
+        const latestBlock = blockData.result;
+
         const reqBody = {
             id: 1,
             jsonrpc: "2.0",
@@ -61,7 +81,7 @@ export class ContractListener extends EventEmitter {
             params: [
                 {
                     from_block: { block_number: this.lastBlock },
-                    to_block: "latest",
+                    to_block: latestBlock,
                     address: this.options.contractAddress,
                     chunk_size: this.options.chunkSize || 10,
                 },
@@ -77,7 +97,9 @@ export class ContractListener extends EventEmitter {
             body: JSON.stringify(reqBody),
         });
         const data = await res.json();
-        return (data.result?.events || []) as ContractEvent[];
+        const events = (data.result?.events || []) as ContractEvent[];
+
+        return { events, latestBlock };
     }
 
     private async processEvent(event: ContractEvent): Promise<{
