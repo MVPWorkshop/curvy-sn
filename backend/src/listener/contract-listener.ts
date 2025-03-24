@@ -1,4 +1,4 @@
-import { CallData, validateAndParseAddress } from "starknet";
+import { CallData, hash, validateAndParseAddress } from "starknet";
 import { EventEmitter } from "stream";
 import { extractAllCalls, parseERC20Transfers } from "./parser";
 import { ParsedCall, TokenTransfer } from "../types";
@@ -42,6 +42,7 @@ export class ContractListener extends EventEmitter {
 
             // Process events if any are returned.
             if (events.length > 0) {
+                console.log(`Processing ${events.length} events`);
                 for (const event of events) {
                     const result = await this.processEvent(event);
                     if (result) {
@@ -75,19 +76,33 @@ export class ContractListener extends EventEmitter {
         const blockData = await blockRes.json();
         const latestBlock = blockData.result;
         if (latestBlock < this.lastBlock) return { events: [], latestBlock };
+        let params = [];
+
+        if (this.options.eventName) {
+            params = [
+                {
+                    from_block: { block_number: this.lastBlock },
+                    to_block: { block_number: latestBlock },
+                    keys: [[hash.getSelectorFromName(this.options.eventName)]],
+                    chunk_size: this.options.chunkSize,
+                },
+            ]
+        } else {
+            params = [
+                {
+                    from_block: { block_number: this.lastBlock },
+                    to_block: { block_number: latestBlock },
+                    address: this.options.contractAddress,
+                    chunk_size: this.options.chunkSize,
+                },
+            ]
+        }
 
         const reqBody = {
             id: 1,
             jsonrpc: "2.0",
             method: "starknet_getEvents",
-            params: [
-                {
-                    from_block: { block_number: this.lastBlock },
-                    to_block: { block_number: latestBlock },
-                    address: this.options.contractAddress,
-                    chunk_size: this.options.chunkSize || 10,
-                },
-            ],
+            params,
         };
 
         const res = await fetch(this.options.rpcUrl, {
@@ -111,6 +126,12 @@ export class ContractListener extends EventEmitter {
         tokenTransfers: Array<TokenTransfer>;
     } | null> {
         try {
+            const contractAddress = validateAndParseAddress(
+                event.from_address
+            );
+            const validContractAddress = validateAndParseAddress(this.options.contractAddress);
+            if (validContractAddress !== contractAddress) return null;
+
             const receipt = await this.fetchTransaction(event.transaction_hash);
 
             const calls = extractAllCalls(receipt.result.calldata);
@@ -119,15 +140,21 @@ export class ContractListener extends EventEmitter {
 
             const myCalls = calls.filter(
                 (c: ParsedCall) =>
-                    validateAndParseAddress(this.options.contractAddress) ==
-                    validateAndParseAddress(c.contractAddress)
+                    validContractAddress == validateAndParseAddress(c.contractAddress) || 
+                    validContractAddress == validateAndParseAddress(c.calldata[8] ?? "0x0")
             );
 
             // Process events for the contract that is attached
             if (myCalls.length == 0) return null;
 
             const callData = new CallData(this.options.abi);
-            const rawData = myCalls[0].calldata;
+
+            let rawData: string[] = [];
+            if( validContractAddress == validateAndParseAddress(myCalls[0].contractAddress)) {
+                rawData = myCalls[0].calldata;
+            } else if ( validContractAddress == validateAndParseAddress(myCalls[0].calldata[8])) {
+                rawData = myCalls[0].calldata.slice(11, 25);
+            }
 
             const decoded = callData.decodeParameters(
                 this.options.decodeParameters,

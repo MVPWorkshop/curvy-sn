@@ -21,6 +21,7 @@ export interface ContractListenerOptions {
     chunkSize?: number;
     abi: any;
     decodeParameters: string[];
+    eventName?: string;
 }
 
 export interface ContractEvent {

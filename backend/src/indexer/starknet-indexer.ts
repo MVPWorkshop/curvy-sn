@@ -40,6 +40,7 @@ export class Indexer {
             abi: this.options.metaRegistry.abi,
             decodeParameters: this.options.metaRegistry.decodeParameters,
             chunkSize: this.options.metaRegistry.chunkSize,
+            eventName: this.options.metaRegistry.eventName,
         });
 
         // Subscribe to announcer events.
@@ -180,7 +181,14 @@ export class Indexer {
               (meta_id, starknet_address, spending_public_key, viewing_public_key, created_at, block_number, hash, all_data_is_valid)
           VALUES
               ($1, $2, $3, $4, NOW(), $5, $6, $7)
-          ON CONFLICT DO NOTHING;
+          ON CONFLICT (meta_id) DO UPDATE SET
+              starknet_address = EXCLUDED.starknet_address,
+              spending_public_key = EXCLUDED.spending_public_key,
+              viewing_public_key = EXCLUDED.viewing_public_key,
+              created_at = EXCLUDED.created_at,
+              block_number = EXCLUDED.block_number,
+              hash = EXCLUDED.hash,
+              all_data_is_valid = EXCLUDED.all_data_is_valid;
         `;
         const values = [
             metaId,

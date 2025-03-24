@@ -20,7 +20,7 @@ export class AppRouting {
                         rpcUrl: process.env.RPC_URL!,
                         contractAddress: process.env.ANNOUNCER_ADDRESS!,
                         fromBlock: -1,
-                        chunkSize: 15,
+                        chunkSize: 1000,
                         abi: announcerArtifact.abi,
                         decodeParameters: [
                             "core::byte_array::ByteArray",
@@ -33,8 +33,9 @@ export class AppRouting {
                         rpcUrl: process.env.RPC_URL!,
                         contractAddress: process.env.META_REGISTRY_ADDRESS!,
                         fromBlock: -1,
-                        chunkSize: 10,
+                        chunkSize: 1000,
                         abi: metaRegistryArtifact.abi,
+                        eventName: "MetaAddressSet",
                         decodeParameters: [
                             "core::felt252",
                             "core::byte_array::ByteArray",
