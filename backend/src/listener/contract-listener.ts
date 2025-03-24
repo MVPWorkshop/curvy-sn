@@ -81,7 +81,7 @@ export class ContractListener extends EventEmitter {
             params: [
                 {
                     from_block: { block_number: this.lastBlock },
-                    to_block: latestBlock,
+                    to_block: { block_number: latestBlock },
                     address: this.options.contractAddress,
                     chunk_size: this.options.chunkSize || 10,
                 },
