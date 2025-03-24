@@ -115,7 +115,10 @@ export class ContractListener extends EventEmitter {
         });
         const data = await res.json();
         const events = (data.result?.events || []) as ContractEvent[];
-
+        if (events.length > 0) {
+            // return block number of last event
+            return { events, latestBlock: events[events.length - 1].block_number };
+        }
         return { events, latestBlock };
     }
 
