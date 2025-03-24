@@ -12,7 +12,7 @@ import {
 export class ContractListener extends EventEmitter {
     private options: ContractListenerOptions;
     private pollingInterval: number;
-    private lastBlock: number;
+    private lastBlockScanned: number;
     private timer?: NodeJS.Timeout;
     private pollingMutexTaken: boolean;
 
@@ -20,7 +20,7 @@ export class ContractListener extends EventEmitter {
         super();
         this.options = options;
         this.pollingInterval = pollingInterval;
-        this.lastBlock = options.fromBlock;
+        this.lastBlockScanned = options.fromBlock;
         this.pollingMutexTaken = false;
     }
 
@@ -29,16 +29,16 @@ export class ContractListener extends EventEmitter {
         this.pollingMutexTaken = true;
 
         console.log(
-            `Polling events for contract ${this.options.contractAddress}, latest_block: ${this.lastBlock}`
+            `Polling events for contract ${this.options.contractAddress}, latest_block: ${this.lastBlockScanned}`
         );
 
         try {
             const { events, latestBlock } = await this.fetchEvents();
-            if (latestBlock < this.lastBlock) return;
+            if (latestBlock < this.lastBlockScanned) return;
 
-            // Always update lastBlock to the latest block fetched.
-            this.lastBlock = latestBlock + 1;
-            this.emit("latest_block", this.lastBlock);
+            // Always update lastBlockScanned to the latest block fetched.
+            this.lastBlockScanned = latestBlock;
+            this.emit("latest_block", this.lastBlockScanned);
 
             // Process events if any are returned.
             if (events.length > 0) {
@@ -75,13 +75,13 @@ export class ContractListener extends EventEmitter {
         });
         const blockData = await blockRes.json();
         const latestBlock = blockData.result;
-        if (latestBlock < this.lastBlock) return { events: [], latestBlock };
+        if (latestBlock <= this.lastBlockScanned) return { events: [], latestBlock };
         let params = [];
 
         if (this.options.eventName) {
             params = [
                 {
-                    from_block: { block_number: this.lastBlock },
+                    from_block: { block_number: this.lastBlockScanned + 1 },
                     to_block: { block_number: latestBlock },
                     keys: [[hash.getSelectorFromName(this.options.eventName)]],
                     chunk_size: this.options.chunkSize,
@@ -90,7 +90,7 @@ export class ContractListener extends EventEmitter {
         } else {
             params = [
                 {
-                    from_block: { block_number: this.lastBlock },
+                    from_block: { block_number: this.lastBlockScanned + 1 },
                     to_block: { block_number: latestBlock },
                     address: this.options.contractAddress,
                     chunk_size: this.options.chunkSize,
@@ -116,7 +116,6 @@ export class ContractListener extends EventEmitter {
         const data = await res.json();
         const events = (data.result?.events || []) as ContractEvent[];
         if (events.length > 0) {
-            // return block number of last event
             return { events, latestBlock: events[events.length - 1].block_number };
         }
         return { events, latestBlock };
