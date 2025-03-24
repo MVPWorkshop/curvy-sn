@@ -48,9 +48,9 @@ export class ContractListener extends EventEmitter {
         } catch (e: any) {
             this.emit("error", e);
             console.error(e);
+        }finally {
+            this.pollingMutexTaken = false;
         }
-
-        this.pollingMutexTaken = false;
     }
 
     private async fetchEvents(): Promise<ContractEvent[]> {
