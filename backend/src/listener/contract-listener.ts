@@ -34,9 +34,10 @@ export class ContractListener extends EventEmitter {
 
         try {
             const { events, latestBlock } = await this.fetchEvents();
+            if (latestBlock < this.lastBlock) return;
 
             // Always update lastBlock to the latest block fetched.
-            this.lastBlock = latestBlock;
+            this.lastBlock = latestBlock + 1;
             this.emit("latest_block", this.lastBlock);
 
             // Process events if any are returned.
@@ -73,6 +74,7 @@ export class ContractListener extends EventEmitter {
         });
         const blockData = await blockRes.json();
         const latestBlock = blockData.result;
+        if (latestBlock < this.lastBlock) return { events: [], latestBlock };
 
         const reqBody = {
             id: 1,
