@@ -73,7 +73,7 @@ export class ContractListener extends EventEmitter {
         });
         const blockData = await blockRes.json();
         const latestBlock = blockData.result;
-        console.log(latestBlock)
+
         const reqBody = {
             id: 1,
             jsonrpc: "2.0",
