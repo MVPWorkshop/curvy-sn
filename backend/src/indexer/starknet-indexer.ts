@@ -260,11 +260,11 @@ export class Indexer {
     public async getTransfers(addresses: string[]) {
         const query = `
             SELECT 
-                sender AS address,
+                stealth_address AS address,
                 hash AS "transactionHash",
                 amount
             FROM announcements
-            WHERE sender = ANY($1)
+            WHERE stealth_address = ANY($1)
             ORDER BY block_number DESC
         `;
 
