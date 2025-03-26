@@ -24,7 +24,7 @@ export class Indexer {
       rpcUrl: this.options.rpcUrl,
       contractAddress: this.options.announcer.contractAddress,
       fromBlock: await this.determineActualFromBlock(
-        this.options.announcer.contractAddress
+        this.options.announcer.contractAddress,
       ),
       abi: this.options.announcer.abi,
       decodeParameters: this.options.announcer.decodeParameters,
@@ -35,7 +35,7 @@ export class Indexer {
       rpcUrl: this.options.rpcUrl,
       contractAddress: this.options.metaRegistry.contractAddress,
       fromBlock: await this.determineActualFromBlock(
-        this.options.metaRegistry.contractAddress
+        this.options.metaRegistry.contractAddress,
       ),
       abi: this.options.metaRegistry.abi,
       decodeParameters: this.options.metaRegistry.decodeParameters,
@@ -47,15 +47,12 @@ export class Indexer {
     this.announcerListener.on("event", async (data: ListenerData) => {
       await this.handleAnnouncerEvent(data);
     });
-    this.announcerListener.on(
-      "latest_block",
-      async (latestBlock: number) => {
-        await this.saveProgress(
-          this.options.announcer.contractAddress,
-          latestBlock
-        );
-      }
-    );
+    this.announcerListener.on("latest_block", async (latestBlock: number) => {
+      await this.saveProgress(
+        this.options.announcer.contractAddress,
+        latestBlock,
+      );
+    });
     this.announcerListener.on("error", (err: Error) => {
       console.error("Announcer Listener Error:", err);
     });
@@ -68,7 +65,7 @@ export class Indexer {
     this.metaListener.on("latest_block", async (latestBlock: number) => {
       await this.saveProgress(
         this.options.metaRegistry.contractAddress,
-        latestBlock
+        latestBlock,
       );
     });
     this.metaListener.on("error", (err: Error) => {
@@ -129,7 +126,7 @@ export class Indexer {
     ephemeralPublicKey: string,
     viewTag: string,
     stealthAccountPublicKey: string,
-    stealthAccountAddress: string
+    stealthAccountAddress: string,
   ) {
     const query = `
           INSERT INTO announcements
@@ -169,7 +166,8 @@ export class Indexer {
     if (spendingPublicKey === undefined || viewingPublicKey == undefined)
       return;
 
-    if (raw.data.length !== 2) throw new Error("Event for meta registry doesn't have exactly 2 fields")
+    if (raw.data.length !== 2)
+      throw new Error("Event for meta registry doesn't have exactly 2 fields");
     const starknetAddress = validateAndParseAddress(raw.data[1]);
 
     const blockNumber = raw.block_number;
@@ -284,7 +282,7 @@ export class Indexer {
   }
 
   private async determineActualFromBlock(
-    contractAddress: string
+    contractAddress: string,
   ): Promise<number> {
     const insertQuery = `
             INSERT INTO indexer_progress
