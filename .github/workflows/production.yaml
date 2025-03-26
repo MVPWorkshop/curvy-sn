@@ -30,6 +30,7 @@ jobs:
 
         - name: 'Build Inventory Image'
           run: |
+            cd backend
             docker build . --tag ghcr.io/${{ env.ORG_NAME }}/${{ env.REPO_NAME }}:${{ env.ENVIRONMENT }}-${{ env.sha_short }} --tag ghcr.io/${{ env.ORG_NAME }}/${{ env.REPO_NAME }}:${{ env.ENVIRONMENT }}
             docker push --all-tags ghcr.io/${{ env.ORG_NAME}}/${{ env.REPO_NAME }}
 
