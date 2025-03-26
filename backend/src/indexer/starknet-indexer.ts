@@ -208,6 +208,7 @@ export class Indexer {
   }
 
   public async resolveMetaId(address: string) {
+    // TODO: Return multiple if present.
     const query = `
           SELECT meta_id 
           FROM meta_addresses_registry 

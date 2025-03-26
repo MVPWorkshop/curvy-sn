@@ -1,30 +1,32 @@
+CREATE EXTENSION IF NOT EXISTS citext;
+
 CREATE TABLE IF NOT EXISTS meta_addresses_registry (
     meta_id TEXT PRIMARY KEY,
-    starknet_address TEXT NOT NULL,
-    spending_public_key TEXT NOT NULL,
-    viewing_public_key TEXT NOT NULL,
+    starknet_address CITEXT NOT NULL,
+    spending_public_key CITEXT NOT NULL,
+    viewing_public_key CITEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     block_number BIGINT NOT NULL,
-    hash TEXT NOT NULL,
+    hash CITEXT NOT NULL,
     all_data_is_valid BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS announcements (
     id SERIAL PRIMARY KEY,
-    sender TEXT NOT NULL,
-    stealth_address TEXT NOT NULL,
+    sender CITEXT NOT NULL,
+    stealth_address CITEXT NOT NULL,
     amount TEXT NOT NULL,
-    ephemeral_public_key TEXT NOT NULL,
-    view_tag TEXT NOT NULL,
-    stealth_account_public_key TEXT NOT NULL,
-    stealth_account_address TEXT NOT NULL,
+    ephemeral_public_key CITEXT NOT NULL,
+    view_tag CITEXT NOT NULL,
+    stealth_account_public_key CITEXT NOT NULL,
+    stealth_account_address CITEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     block_number BIGINT NOT NULL,
-    hash TEXT NOT NULL,
+    hash CITEXT NOT NULL,
     all_data_is_valid BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS indexer_progress (
-    contract_address TEXT NOT NULL,
+    contract_address CITEXT NOT NULL,
     latest_block BIGINT NOT NULL
 );
