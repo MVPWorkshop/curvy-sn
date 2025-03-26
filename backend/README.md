@@ -20,7 +20,7 @@ If you feel like running it in Docker, you can run:
 docker compose up -d --build
 ```
 
-This will setup an Indexer API, a PostgreSQL database and also an Adminer instance for you to take a look into the data.
+This will setup a PostgreSQL database and also an Adminer instance for you to take a look into the data.
 If you feel like running the project locally, first install the project dependencies by running:
 
 ```bash
