@@ -3,7 +3,6 @@ package recipient
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	BN254 "github.com/consensys/gnark-crypto/ecc/bn254"
@@ -63,12 +62,10 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 
 func Scan(inputJsonString string) (outputJsonString string) {
 
-	fmt.Println(inputJsonString)
 
 	var recipientInputData RecipientInputData
 	json.Unmarshal([]byte(inputJsonString), &recipientInputData)
 
-	fmt.Println("recipientInputData", recipientInputData)
 
 	Rs_string := recipientInputData.Rs
 
@@ -116,7 +113,6 @@ func Scan(inputJsonString string) (outputJsonString string) {
 
 		tmp := utils.BN254_MulG1PointandElement(&Rsi, &v)
 		calculatedViewTag := utils.ComputeViewTag("v1-1byte", &tmp)
-		fmt.Println("calculatedViewTag", calculatedViewTag)
 
 		if calculatedViewTag != recipientInputData.ViewTags[i][:2*nBytesInViewTag] {
 			continue

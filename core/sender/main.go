@@ -2,7 +2,6 @@ package sender
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	BN254 "github.com/consensys/gnark-crypto/ecc/bn254"
@@ -15,12 +14,8 @@ import (
 
 func Send(inputJsonString string) (outputJsonString string) {
 
-	fmt.Println("jsonInputString::", inputJsonString)
-
 	var senderInputData SenderInputData
 	json.Unmarshal([]byte(inputJsonString), &senderInputData)
-
-	fmt.Printf("SenderInputData %+v\n", senderInputData)
 
 	var K SECP256K1.G1Affine
 	Kx, Ky := utils.UnpackXY(senderInputData.K)
