@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS announcements (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     block_number BIGINT NOT NULL,
     hash CITEXT NOT NULL,
-    all_data_is_valid BOOLEAN NOT NULL
+    all_data_is_valid BOOLEAN NOT NULL,
+    UNIQUE (stealth_address, ephemeral_public_key, stealth_account_public_key, view_tag)
 );
 
 CREATE TABLE IF NOT EXISTS indexer_progress (

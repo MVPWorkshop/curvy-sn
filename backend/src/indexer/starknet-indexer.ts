@@ -99,7 +99,15 @@ export class Indexer {
               (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid)
           VALUES
               ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10)
-          ON CONFLICT DO NOTHING;
+          ON CONFLICT (stealth_account_address, ephemeral_public_key, stealth_account_public_key, view_tag) 
+          DO UPDATE SET
+              sender = EXCLUDED.sender,
+              amount = EXCLUDED.amount,
+              stealth_account_public_key = EXCLUDED.stealth_account_public_key,
+              created_at = EXCLUDED.created_at,
+              block_number = EXCLUDED.block_number,
+              hash = EXCLUDED.hash,
+              all_data_is_valid = EXCLUDED.all_data_is_valid;
         `;
     const values = [
       sender,
