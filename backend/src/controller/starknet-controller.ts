@@ -113,7 +113,7 @@ export class StarknetController implements AppRoute {
   }
 
   public async recordStealthInfo(req: Request, res: Response) {
-    const {
+    let {
       ephemeralPublicKey,
       viewTag,
       stealthAccountPublicKey,
@@ -140,7 +140,7 @@ export class StarknetController implements AppRoute {
         });
 
       try {
-        validateAndParseAddress(stealthAccountAddress);
+        stealthAccountAddress = validateAndParseAddress(stealthAccountAddress);
       } catch (e) {
         return res.status(400).json({
           data: null,
