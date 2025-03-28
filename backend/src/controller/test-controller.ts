@@ -8,16 +8,16 @@ export class TestController implements AppRoute {
 
   constructor() {
     this.router.use(cors({ origin: "*" }));
-    
+
     //endpoint
-    this.router.get('/check', cors(), (request, response) => {
-        this.checkEndpoint(request, response);
+    this.router.get("/check", cors(), (request, response) => {
+      this.checkEndpoint(request, response);
     });
   }
 
   public async checkEndpoint(req: Request, res: Response) {
-    res.status(200).json({msg: "Check"});
-    console.log(req.body)
+    res.status(200).json({ msg: "Check" });
+    console.log(req.body);
     return;
   }
 }
