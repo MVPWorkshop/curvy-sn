@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS announcements (
     block_number BIGINT NOT NULL,
     hash CITEXT NOT NULL,
     all_data_is_valid BOOLEAN NOT NULL,
-    UNIQUE (stealth_address, ephemeral_public_key, stealth_account_public_key, view_tag)
+    UNIQUE (stealth_account_address, ephemeral_public_key, stealth_account_public_key, view_tag)
 );
 
 CREATE TABLE IF NOT EXISTS indexer_progress (
