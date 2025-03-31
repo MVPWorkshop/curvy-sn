@@ -8,8 +8,9 @@ import {
   isValidSECP256k1Point,
   isValidViewTag,
 } from "../validation/curvy-utils";
+import { Indexer } from "./manager";
 
-export class Indexer {
+export class StarknetIndexer implements Indexer {
   private pool: Pool;
   private announcerListener: ContractListener | any;
   private metaListener: ContractListener | any;

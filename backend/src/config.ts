@@ -1,3 +1,6 @@
+import { IndexerOptions } from "./types";
+import announcerArtifact from "./artifacts/curvy_announcer_CurvyAnnouncerV0.contract_class.json";
+import metaRegistryArtifact from "./artifacts/curvy_meta_registry_CurvyMetaRegistryV0.contract_class.json";
 export interface DBConfig {
   host: string;
   port: number;
@@ -8,14 +11,13 @@ export interface DBConfig {
 
 export interface Config {
   Database: DBConfig;
-  AccountClassHash: string;
-  AnnouncerAddress: string;
-  MetaRegistryAddress: string;
-  RpcUrl: string;
   JWTSecret: string;
   StarknetCors: string;
+  StarknetOptions: {
+    mainnet: IndexerOptions,
+    testnet: IndexerOptions
+  }
 }
-
 function requireEnv(key: string): string {
   const value = process.env[key];
   if (!value) {
@@ -33,14 +35,45 @@ export function initConfig(): Config {
     database: requireEnv("PGDATABASE"),
   };
 
+
+  const starknetTestnet = {
+    rpcUrl: requireEnv("STARKNET_TEST_RPC_URL"),
+    announcer: {
+      rpcUrl: requireEnv("STARKNET_TEST_RPC_URL"),
+      contractAddress: requireEnv("ANNOUNCER_ADDRESS_TEST"),
+      fromBlock: -1,
+      chunkSize: 1000,
+      abi: announcerArtifact.abi,
+      decodeParameters: [
+        "core::byte_array::ByteArray",
+        "core::byte_array::ByteArray",
+        "core::byte_array::ByteArray",
+        "core::starknet::contract_address::ContractAddress",
+      ],
+    },
+    metaRegistry: {
+      rpcUrl: requireEnv("STARKNET_TEST_RPC_URL"),
+      contractAddress: requireEnv("META_REGISTRY_ADDRESS_TEST"),
+      fromBlock: -1,
+      chunkSize: 1000,
+      abi: metaRegistryArtifact.abi,
+      eventName: "MetaAddressSet",
+      decodeParameters: [
+        "core::felt252",
+        "core::byte_array::ByteArray",
+      ],
+    },
+    dbConfig,
+  }
+
   const config: Config = {
     Database: dbConfig,
-    AccountClassHash: requireEnv("CURVY_ACCOUNT_CLASS_HASH"),
-    AnnouncerAddress: requireEnv("ANNOUNCER_ADDRESS"),
-    MetaRegistryAddress: requireEnv("META_REGISTRY_ADDRESS"),
-    RpcUrl: requireEnv("RPC_URL"),
     JWTSecret: requireEnv("JWT_SECRET"),
-    StarknetCors: requireEnv("STARKNET_CORS"),
+    StarknetOptions: {
+      mainnet: starknetTestnet,
+      testnet: starknetTestnet,
+    },
+    StarknetCors: requireEnv("STARKNET_CORS")
   };
 
   return config;
