@@ -18,7 +18,10 @@ func Send(inputJsonString string) (outputJsonString string) {
 	fmt.Println("jsonInputString::", inputJsonString)
 
 	var senderInputData SenderInputData
-	json.Unmarshal([]byte(inputJsonString), &senderInputData)
+	if err := json.Unmarshal([]byte(inputJsonString), &senderInputData); err != nil {
+		fmt.Errorf("error while unmarshalling input string: %v", err)
+		return
+	}
 
 	fmt.Printf("SenderInputData %+v\n", senderInputData)
 
@@ -37,7 +40,13 @@ func Send(inputJsonString string) (outputJsonString string) {
 
 	var senderOutputData SenderOutputData
 	senderOutputData.PK_r = r.String()
-	R, _ := utils.BN254_CalcG1PubKey(r)
+	R, err := utils.BN254_CalcG1PubKey(r)
+
+	if err != nil {
+		fmt.Errorf("error while calculating R: %v", err)
+		return
+	}
+
 	senderOutputData.R = utils.PackXY(R.X.String(), R.Y.String())
 
 	S := computeSharedSecret(&r, &V)
@@ -48,7 +57,13 @@ func Send(inputJsonString string) (outputJsonString string) {
 	tmp := utils.BN254_MulG1PointandElement(&V, &r)
 	senderOutputData.ViewTag = utils.ComputeViewTag("v1-1byte", &tmp)
 
-	jsonData, _ := json.Marshal(senderOutputData)
+	jsonData, err := json.Marshal(senderOutputData)
+
+	if err != nil {
+		fmt.Errorf("error while marshalling sender output data: %v", err)
+		return
+	}
+
 	return string(jsonData)
 }
 
@@ -78,7 +93,13 @@ func computeSharedSecret(r *BN254_fr.Element, V *BN254.G1Affine) BN254.GT {
 	var G2Aff BN254.G2Affine
 	G2Aff.FromJacobian(&G2Jac)
 
-	P, _ := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
+	P, err := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
+
+	if err != nil {
+		fmt.Errorf("error while pairing calculates: %v", err)
+		// TODO: Same thing here
+		// return BN254.GT{}
+	}
 
 	return P
 }
