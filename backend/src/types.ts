@@ -64,3 +64,8 @@ export interface ListenerData {
   decoded: any;
   tokenTransfers: Array<TokenTransfer>;
 }
+
+export enum ChainEnum {
+  StarknetMainnet = "starknet-mainnet",
+  StarknetTestnet = "starknet-testnet"
+}

@@ -15,17 +15,16 @@ export class AppRouting {
 
   public configure() {
     const options = {
-        "starknet-mainnet": this.config.StarknetOptions.mainnet,
-        "starknet-testnet": this.config.StarknetOptions.testnet,
+      "starknet-testnet": this.config.StarknetOptions.testnet,
     }
 
     const manager = new IndexerManager(options)
 
     this.addRoute(
-        new StarknetController(
-            manager,
-            this.config.StarknetCors
-        )
+      new StarknetController(
+        manager,
+        this.config.StarknetCors
+      )
     );
 
   }

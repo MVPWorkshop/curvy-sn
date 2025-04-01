@@ -1,4 +1,4 @@
-import { IndexerOptions } from "../types";
+import { ChainEnum, IndexerOptions } from "../types";
 import { EthereumIndexer } from "./ethereum-indexer";
 import { StarknetIndexer } from "./starknet-indexer";
 
@@ -73,7 +73,6 @@ export interface Indexer {
     saveProgress(contractAddress: string, latestBlock: number): Promise<any>;
 }
 
-
 export class IndexerManager {
     private options: { [chain: string]: IndexerOptions };
     private indexers: { [chain: string]: Indexer } = {};
@@ -92,8 +91,8 @@ export class IndexerManager {
             throw new Error(`No indexer options configured for chain: ${chain}`);
         }
         let indexer: Indexer;
-        if (chain === "starknet-mainnet" || chain === "starknet-testnet") {
-            indexer = new StarknetIndexer(opts);
+        if (chain === ChainEnum.StarknetMainnet || chain === ChainEnum.StarknetTestnet) {
+            indexer = new StarknetIndexer(opts, chain);
         } else if (chain === "ethereum") {
             indexer = new EthereumIndexer(opts);
         } else {

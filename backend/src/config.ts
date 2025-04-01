@@ -36,7 +36,7 @@ export function initConfig(): Config {
   };
 
 
-  const starknetTestnet = {
+  const starknetTestnet: IndexerOptions = {
     rpcUrl: requireEnv("STARKNET_TEST_RPC_URL"),
     announcer: {
       rpcUrl: requireEnv("STARKNET_TEST_RPC_URL"),
