@@ -1,9 +1,18 @@
+import { CurrencyConsumer } from "./currencies/consumer";
+
 export interface DBConfig {
   host: string;
   port: number;
   user: string;
   password: string;
   database: string;
+}
+
+export interface CurrencyConfig {
+  apiUrl: string;
+  apiToken: string;
+  intervalMs: number;
+  chain: string;
 }
 
 export interface Config {
@@ -42,6 +51,15 @@ export function initConfig(): Config {
     JWTSecret: requireEnv("JWT_SECRET"),
     StarknetCors: requireEnv("STARKNET_CORS"),
   };
+
+  const consumer = new CurrencyConsumer({
+    apiToken: "50166d1f-013b-425b-82c6-7a92a90e88f5",
+    apiUrl: "https://pro-api.coinmarketcap.com/v1",
+    chain: "Ethereum",
+    intervalMs: 3000,
+  }, dbConfig);
+
+  consumer.start();
 
   return config;
 }

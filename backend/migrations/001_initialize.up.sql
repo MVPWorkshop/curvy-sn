@@ -31,3 +31,12 @@ CREATE TABLE IF NOT EXISTS indexer_progress (
     contract_address CITEXT NOT NULL,
     latest_block BIGINT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS currency_prices (
+    id INTEGER PRIMARY KEY,
+    name CITEXT NOT NULL,
+    symbol CITEXT NOT NULL,
+    price NUMERIC NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    chain CITEXT NOT NULL
+);
