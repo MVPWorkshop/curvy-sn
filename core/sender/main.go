@@ -3,6 +3,7 @@ package sender
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 
 	BN254 "github.com/consensys/gnark-crypto/ecc/bn254"
@@ -19,8 +20,8 @@ func Send(inputJsonString string) (outputJsonString string) {
 
 	var senderInputData SenderInputData
 	if err := json.Unmarshal([]byte(inputJsonString), &senderInputData); err != nil {
-		fmt.Errorf("error while unmarshalling input string: %v", err)
-		return
+		log.Printf("error while unmarshalling input string: %v", err)
+		panic(fmt.Errorf("error while unmarshalling input string: %v", err))
 	}
 
 	fmt.Printf("SenderInputData %+v\n", senderInputData)
@@ -43,8 +44,8 @@ func Send(inputJsonString string) (outputJsonString string) {
 	R, err := utils.BN254_CalcG1PubKey(r)
 
 	if err != nil {
-		fmt.Errorf("error while calculating R: %v", err)
-		return
+		log.Printf("error while calculating R: %v", err)
+		panic(fmt.Errorf("error while calculating R: %v", err))
 	}
 
 	senderOutputData.R = utils.PackXY(R.X.String(), R.Y.String())
@@ -60,8 +61,8 @@ func Send(inputJsonString string) (outputJsonString string) {
 	jsonData, err := json.Marshal(senderOutputData)
 
 	if err != nil {
-		fmt.Errorf("error while marshalling sender output data: %v", err)
-		return
+		log.Printf("error while marshalling sender output data: %v", err)
+		panic(fmt.Errorf("error while marshalling sender output data: %v", err))
 	}
 
 	return string(jsonData)
@@ -96,9 +97,8 @@ func computeSharedSecret(r *BN254_fr.Element, V *BN254.G1Affine) BN254.GT {
 	P, err := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
 
 	if err != nil {
-		fmt.Errorf("error while pairing calculates: %v", err)
-		// TODO: Same thing here
-		// return BN254.GT{}
+		log.Printf("error while pairing calculates: %v", err)
+		panic(fmt.Errorf("error while pairing calculates: %v", err))
 	}
 
 	return P

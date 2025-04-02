@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 
 	BN254 "github.com/consensys/gnark-crypto/ecc/bn254"
@@ -20,8 +21,8 @@ func NewMeta() (outputJsonString string) {
 	v, V, err := utils.BN254_GenG1KeyPair()
 
 	if err != nil {
-		fmt.Errorf("error generating K and V: %v", err)
-		return
+		log.Printf("error generating K and V: %v", err)
+		panic(fmt.Errorf("error generating K and V: %v", err))
 	}
 
 	var recipientNewMeta RecipientNewMeta
@@ -33,8 +34,8 @@ func NewMeta() (outputJsonString string) {
 	tmp, err := json.Marshal(recipientNewMeta)
 
 	if err != nil {
-		fmt.Errorf("error marshalling new recipient meta: %v", err)
-		return
+		log.Printf("error marshalling new recipient meta: %v", err)
+		panic(fmt.Errorf("error marshalling new recipient meta: %v", err))
 	}
 
 	return string(tmp)
@@ -43,8 +44,8 @@ func NewMeta() (outputJsonString string) {
 func GetMeta(inputJsonString string) (outputJsonString string) {
 	var recipientInputData RecipientInputMeta
 	if err := json.Unmarshal([]byte(inputJsonString), &recipientInputData); err != nil {
-		fmt.Errorf("error while unmarshalling input string: %v", err)
-		return
+		log.Printf("error while unmarshalling input string: %v", err)
+		panic(fmt.Errorf("error while unmarshalling input string: %v", err))
 	}
 
 	var recipientNewMeta RecipientNewMeta
@@ -56,8 +57,8 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 	kBytes, err := hex.DecodeString(recipientNewMeta.PK_k)
 
 	if err != nil {
-		fmt.Errorf("error decoding string for k: %v", err)
-		return
+		log.Printf("error decoding string for k: %v", err)
+		panic(fmt.Errorf("error decoding string for k: %v", err))
 	}
 
 	k.Unmarshal(kBytes)
@@ -70,8 +71,8 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 	vBytes, err := hex.DecodeString(recipientNewMeta.PK_v)
 
 	if err != nil {
-		fmt.Errorf("error decoding string for v: %v", err)
-		return
+		log.Printf("error decoding string for v: %v", err)
+		panic(fmt.Errorf("error decoding string for v: %v", err))
 	}
 
 	v.Unmarshal(vBytes)
@@ -86,8 +87,8 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 	tmp, err := json.Marshal(recipientNewMeta)
 
 	if err != nil {
-		fmt.Errorf("error marshaling new recipient meta: %v", err)
-		return
+		log.Printf("error marshaling new recipient meta: %v", err)
+		panic(fmt.Errorf("error marshaling new recipient meta: %v", err))
 	}
 
 	return string(tmp)
@@ -99,8 +100,8 @@ func Scan(inputJsonString string) (outputJsonString string) {
 
 	var recipientInputData RecipientInputData
 	if err := json.Unmarshal([]byte(inputJsonString), &recipientInputData); err != nil {
-		fmt.Errorf("error marshalling input string: %v", err)
-		return
+		log.Printf("error marshalling input string: %v", err)
+		panic(fmt.Errorf("error marshalling input string: %v", err))
 	}
 
 	fmt.Println("recipientInputData", recipientInputData)
@@ -126,8 +127,8 @@ func Scan(inputJsonString string) (outputJsonString string) {
 	kBytes, err := hex.DecodeString(recipientInputData.PK_k)
 
 	if err != nil {
-		fmt.Errorf("error decoding string for k: %v", err)
-		return
+		log.Printf("error decoding string for k: %v", err)
+		panic(fmt.Errorf("error decoding string for k: %v", err))
 	}
 
 	k.Unmarshal(kBytes)
@@ -138,8 +139,8 @@ func Scan(inputJsonString string) (outputJsonString string) {
 	vBytes, err := hex.DecodeString(recipientInputData.PK_v)
 
 	if err != nil {
-		fmt.Errorf("error decoding string for v: %v", err)
-		return
+		log.Printf("error decoding string for v: %v", err)
+		panic(fmt.Errorf("error decoding string for v: %v", err))
 	}
 
 	v.Unmarshal(vBytes)
@@ -183,8 +184,8 @@ func Scan(inputJsonString string) (outputJsonString string) {
 	tmp, err := json.Marshal(recipientOutputData)
 
 	if err != nil {
-		fmt.Errorf("error marshalling recipient output data: %v", err)
-		return
+		log.Printf("error marshalling recipient output data: %v", err)
+		panic(fmt.Errorf("error marshalling recipient output data: %v", err))
 	}
 
 	return string(tmp)
@@ -230,9 +231,8 @@ func computeSharedSecret(v *BN254_fr.Element, R *BN254.G1Affine) BN254.GT {
 	P, err := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
 
 	if err != nil {
-		fmt.Errorf("error while pairing calculates: %v", err)
-		// TODO: what can we return here
-		// return BN254.GT{} //would this suffice
+		log.Printf("error while pairing calculates: %v", err)
+		panic(fmt.Errorf("error while pairing calculates: %v", err))
 	}
 
 	return P
