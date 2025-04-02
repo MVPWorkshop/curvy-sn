@@ -41,12 +41,17 @@ export class CurrencyConsumer {
         const data = await response.json();
         let tokens = data.data as any[];
 
-        // Filter tokens by chain (using the chain value as the ecosystem)
+
         tokens = tokens.filter((token) => {
-            return token.platform &&
-                token.platform.name &&
-                token.platform.name.toLowerCase() === this.chain;
-        });
+            // First try to match using the platform name
+            if (token.platform && token.platform.name) {
+              if (token.platform.name.toLowerCase() === this.chain) {
+                return true;
+              }
+            }
+            // If platform check fails, as a last resort try to match using token name
+            return token.name && token.name.toLowerCase() === this.chain;
+          })
 
         const prices: CurrencyPrice[] = tokens.map((item) => ({
             id: item.id,

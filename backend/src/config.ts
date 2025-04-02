@@ -52,14 +52,23 @@ export function initConfig(): Config {
     StarknetCors: requireEnv("STARKNET_CORS"),
   };
 
-  const consumer = new CurrencyConsumer({
+  const ethereumConsumer = new CurrencyConsumer({
     apiToken: "50166d1f-013b-425b-82c6-7a92a90e88f5",
     apiUrl: "https://pro-api.coinmarketcap.com/v1",
     chain: "Ethereum",
     intervalMs: 3000,
   }, dbConfig);
 
-  consumer.start();
+  ethereumConsumer.start();
 
+  const starknetConsumer = new CurrencyConsumer({
+    apiToken: "50166d1f-013b-425b-82c6-7a92a90e88f5",
+    apiUrl: "https://pro-api.coinmarketcap.com/v1",
+    chain: "Starknet",
+    intervalMs: 3000,
+  }, dbConfig);
+
+  starknetConsumer.start();
+  
   return config;
 }
