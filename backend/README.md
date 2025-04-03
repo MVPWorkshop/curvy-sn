@@ -6,7 +6,7 @@
 
 This part of the repository contains imlpementation code for Curvy Indexer API on Starknet. The code
 represents a backend server implemented with Express and PostgreSQL. The server provides an API and also
-an Indexer component which listens for every event emitted by our smart contracts, which we later store 
+an Indexer component which listens for every event emitted by our smart contracts, which we later store
 within our database.
 
 ## Start
@@ -33,4 +33,4 @@ and start the Indexer with:
 npm run start
 ```
 
-Please notice that for a local run of the project you need to have a running database. 
+Please notice that for a local run of the project you need to have a running database.

@@ -2,6 +2,8 @@ package sender
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"math/big"
 
 	BN254 "github.com/consensys/gnark-crypto/ecc/bn254"
@@ -15,7 +17,12 @@ import (
 func Send(inputJsonString string) (outputJsonString string) {
 
 	var senderInputData SenderInputData
-	json.Unmarshal([]byte(inputJsonString), &senderInputData)
+	if err := json.Unmarshal([]byte(inputJsonString), &senderInputData); err != nil {
+		log.Printf("error while unmarshalling input string: %v", err)
+		panic(fmt.Errorf("error while unmarshalling input string: %v", err))
+	}
+
+	fmt.Printf("SenderInputData %+v\n", senderInputData)
 
 	var K SECP256K1.G1Affine
 	Kx, Ky := utils.UnpackXY(senderInputData.K)
@@ -32,7 +39,13 @@ func Send(inputJsonString string) (outputJsonString string) {
 
 	var senderOutputData SenderOutputData
 	senderOutputData.PK_r = r.String()
-	R, _ := utils.BN254_CalcG1PubKey(r)
+	R, err := utils.BN254_CalcG1PubKey(r)
+
+	if err != nil {
+		log.Printf("error while calculating R: %v", err)
+		panic(fmt.Errorf("error while calculating R: %v", err))
+	}
+
 	senderOutputData.R = utils.PackXY(R.X.String(), R.Y.String())
 
 	S := computeSharedSecret(&r, &V)
@@ -43,7 +56,13 @@ func Send(inputJsonString string) (outputJsonString string) {
 	tmp := utils.BN254_MulG1PointandElement(&V, &r)
 	senderOutputData.ViewTag = utils.ComputeViewTag("v1-1byte", &tmp)
 
-	jsonData, _ := json.Marshal(senderOutputData)
+	jsonData, err := json.Marshal(senderOutputData)
+
+	if err != nil {
+		log.Printf("error while marshalling sender output data: %v", err)
+		panic(fmt.Errorf("error while marshalling sender output data: %v", err))
+	}
+
 	return string(jsonData)
 }
 
@@ -73,7 +92,12 @@ func computeSharedSecret(r *BN254_fr.Element, V *BN254.G1Affine) BN254.GT {
 	var G2Aff BN254.G2Affine
 	G2Aff.FromJacobian(&G2Jac)
 
-	P, _ := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
+	P, err := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
+
+	if err != nil {
+		log.Printf("error while pairing calculates: %v", err)
+		panic(fmt.Errorf("error while pairing calculates: %v", err))
+	}
 
 	return P
 }
