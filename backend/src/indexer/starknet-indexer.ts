@@ -9,6 +9,7 @@ import {
   isValidViewTag,
 } from "../validation/curvy-utils";
 import { Indexer } from "./manager";
+import { DBConfig } from "../config";
 
 export class StarknetIndexer implements Indexer {
   private chain: string;
@@ -19,36 +20,34 @@ export class StarknetIndexer implements Indexer {
   private metaListener: ContractListener | any;
   private options: IndexerOptions;
 
-  constructor(options: IndexerOptions, chainEnum: ChainEnum) {
+  constructor(options: IndexerOptions, dbConfig: DBConfig, chainEnum: ChainEnum) {
     this.options = options;
-    this.pool = new Pool(this.options.dbConfig);
+    this.pool = new Pool(dbConfig);
     this.chain = chainEnum.split("-")[0];
     this.network = chainEnum.split("-")[1];
   }
 
   public async start() {
     this.announcerListener = new ContractListener({
-      rpcUrl: this.options.rpcUrl,
       contractAddress: this.options.announcer.contractAddress,
       fromBlock: await this.determineActualFromBlock(
         this.options.announcer.contractAddress,
       ),
-      abi: this.options.announcer.abi,
+      abiPath: this.options.announcer.abiPath,
       decodeParameters: this.options.announcer.decodeParameters,
       chunkSize: this.options.announcer.chunkSize,
-    });
+    }, this.options.rpcUrl);
 
     this.metaListener = new ContractListener({
-      rpcUrl: this.options.rpcUrl,
       contractAddress: this.options.metaRegistry.contractAddress,
       fromBlock: await this.determineActualFromBlock(
         this.options.metaRegistry.contractAddress,
       ),
-      abi: this.options.metaRegistry.abi,
+      abiPath: this.options.metaRegistry.abiPath,
       decodeParameters: this.options.metaRegistry.decodeParameters,
       chunkSize: this.options.metaRegistry.chunkSize,
       eventName: this.options.metaRegistry.eventName,
-    });
+    }, this.options.rpcUrl);
 
     // Subscribe to announcer events.
     this.announcerListener.on("event", async (data: ListenerData) => {

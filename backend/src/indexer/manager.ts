@@ -1,3 +1,4 @@
+import { DBConfig } from "../config";
 import { ChainEnum, IndexerOptions } from "../types";
 import { EthereumIndexer } from "./ethereum-indexer";
 import { StarknetIndexer } from "./starknet-indexer";
@@ -77,22 +78,22 @@ export class IndexerManager {
     private options: { [chain: string]: IndexerOptions };
     private indexers: { [chain: string]: Indexer } = {};
 
-    constructor(options: { [chain: string]: IndexerOptions }) {
+    constructor(options: { [chain: string]: IndexerOptions }, dbConfig: DBConfig) {
         this.options = options;
         // Eagerly initialize all indexers
         for (const chain in options) {
-            this.indexers[chain] = this.initializeIndexer(chain);
+            this.indexers[chain] = this.initializeIndexer(chain, dbConfig);
         }
     }
 
-    private initializeIndexer(chain: string): Indexer {
+    private initializeIndexer(chain: string, dbConfig: DBConfig): Indexer {
         const opts = this.options[chain];
         if (!opts) {
             throw new Error(`No indexer options configured for chain: ${chain}`);
         }
         let indexer: Indexer;
         if (chain === ChainEnum.StarknetMainnet || chain === ChainEnum.StarknetTestnet) {
-            indexer = new StarknetIndexer(opts, chain);
+            indexer = new StarknetIndexer(opts, dbConfig, chain);
         } else if (chain === "ethereum") {
             indexer = new EthereumIndexer(opts);
         } else {

@@ -3,6 +3,7 @@ import { AppRoute } from "./app-route";
 import { StarknetController } from "../controller/starknet-controller";
 import { Config } from "../config";
 import { IndexerManager } from "../indexer/manager";
+import { IndexerOptions } from "../types";
 
 export class AppRouting {
   constructor(
@@ -14,16 +15,18 @@ export class AppRouting {
   }
 
   public configure() {
-    const options = {
-      "starknet-testnet": this.config.StarknetOptions.testnet,
-    }
+    const options: { [key: string]: IndexerOptions } = {};
+    this.config.indexers.forEach((opt) => {
+      const key = `${opt.chain.toLowerCase()}-${opt.network.toLowerCase()}`;
+      options[key] = opt;
+    });
 
-    const manager = new IndexerManager(options)
+    const manager = new IndexerManager(options, this.config.database)
 
     this.addRoute(
       new StarknetController(
         manager,
-        this.config.StarknetCors
+        this.config.starknetCors
       )
     );
 

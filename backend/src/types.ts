@@ -1,5 +1,3 @@
-import { DBConfig } from "./config";
-
 export interface ParsedCall {
   contractAddress: string;
   entrypoint: string;
@@ -15,11 +13,10 @@ export interface TokenTransfer {
 }
 
 export interface ContractListenerOptions {
-  rpcUrl: string;
   contractAddress: string;
   fromBlock: number;
   chunkSize?: number;
-  abi: any;
+  abiPath: string;
   decodeParameters: string[];
   eventName?: string;
 }
@@ -52,8 +49,9 @@ export interface StarknetTransaction {
 }
 
 export interface IndexerOptions {
+  chain: string;
+  network: string;
   rpcUrl: string;
-  dbConfig: DBConfig;
   announcer: ContractListenerOptions;
   metaRegistry: ContractListenerOptions;
 }
