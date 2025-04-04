@@ -30,7 +30,7 @@ const { k, v } = JSON.parse(recipientInfo);
 let reconstructedRecipientInfo = await globalThis.get_meta(
     JSON.stringify({ k, v })
 );
-console.log(reconstructedRecipientInfo);
+console.log({ reconstructedRecipientInfo });
 // Output (json string):
 // {
 //   "k": "...", // Private spending key

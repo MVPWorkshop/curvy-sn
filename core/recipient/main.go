@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 
 	BN254 "github.com/consensys/gnark-crypto/ecc/bn254"
@@ -17,7 +18,12 @@ import (
 func NewMeta() (outputJsonString string) {
 
 	k, K := utils.SECP256k_Gen1G1KeyPair()
-	v, V, _ := utils.BN254_GenG1KeyPair()
+	v, V, err := utils.BN254_GenG1KeyPair()
+
+	if err != nil {
+		log.Printf("error generating K and V: %v", err)
+		panic(fmt.Errorf("error generating K and V: %v", err))
+	}
 
 	var recipientNewMeta RecipientNewMeta
 	recipientNewMeta.PK_k = k.Text(16)
@@ -25,13 +31,22 @@ func NewMeta() (outputJsonString string) {
 	recipientNewMeta.K = utils.PackXY(K.X.String(), K.Y.String())
 	recipientNewMeta.V = utils.PackXY(V.X.String(), V.Y.String())
 
-	tmp, _ := json.Marshal(recipientNewMeta)
+	tmp, err := json.Marshal(recipientNewMeta)
+
+	if err != nil {
+		log.Printf("error marshalling new recipient meta: %v", err)
+		panic(fmt.Errorf("error marshalling new recipient meta: %v", err))
+	}
+
 	return string(tmp)
 }
 
 func GetMeta(inputJsonString string) (outputJsonString string) {
 	var recipientInputData RecipientInputMeta
-	json.Unmarshal([]byte(inputJsonString), &recipientInputData)
+	if err := json.Unmarshal([]byte(inputJsonString), &recipientInputData); err != nil {
+		log.Printf("error while unmarshalling input string: %v", err)
+		panic(fmt.Errorf("error while unmarshalling input string: %v", err))
+	}
 
 	var recipientNewMeta RecipientNewMeta
 
@@ -39,7 +54,13 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 	recipientNewMeta.PK_v = recipientInputData.PK_v
 
 	var k SECP256K1_fr.Element
-	kBytes, _ := hex.DecodeString(recipientNewMeta.PK_k)
+	kBytes, err := hex.DecodeString(recipientNewMeta.PK_k)
+
+	if err != nil {
+		log.Printf("error decoding string for k: %v", err)
+		panic(fmt.Errorf("error decoding string for k: %v", err))
+	}
+
 	k.Unmarshal(kBytes)
 	var k_asBigInt big.Int
 	k.BigInt(&k_asBigInt)
@@ -47,7 +68,13 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 	K.ScalarMultiplicationBase(&k_asBigInt)
 
 	var v BN254_fr.Element
-	vBytes, _ := hex.DecodeString(recipientNewMeta.PK_v)
+	vBytes, err := hex.DecodeString(recipientNewMeta.PK_v)
+
+	if err != nil {
+		log.Printf("error decoding string for v: %v", err)
+		panic(fmt.Errorf("error decoding string for v: %v", err))
+	}
+
 	v.Unmarshal(vBytes)
 	var v_asBigInt big.Int
 	v.BigInt(&v_asBigInt)
@@ -57,18 +84,23 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 	recipientNewMeta.K = utils.PackXY(K.X.String(), K.Y.String())
 	recipientNewMeta.V = utils.PackXY(V.X.String(), V.Y.String())
 
-	tmp, _ := json.Marshal(recipientNewMeta)
+	tmp, err := json.Marshal(recipientNewMeta)
+
+	if err != nil {
+		log.Printf("error marshaling new recipient meta: %v", err)
+		panic(fmt.Errorf("error marshaling new recipient meta: %v", err))
+	}
+
 	return string(tmp)
 }
 
 func Scan(inputJsonString string) (outputJsonString string) {
 
-	fmt.Println(inputJsonString)
-
 	var recipientInputData RecipientInputData
-	json.Unmarshal([]byte(inputJsonString), &recipientInputData)
-
-	fmt.Println("recipientInputData", recipientInputData)
+	if err := json.Unmarshal([]byte(inputJsonString), &recipientInputData); err != nil {
+		log.Printf("error marshalling input string: %v", err)
+		panic(fmt.Errorf("error marshalling input string: %v", err))
+	}
 
 	Rs_string := recipientInputData.Rs
 
@@ -88,13 +120,25 @@ func Scan(inputJsonString string) (outputJsonString string) {
 	}
 
 	var k SECP256K1_fr.Element
-	kBytes, _ := hex.DecodeString(recipientInputData.PK_k)
+	kBytes, err := hex.DecodeString(recipientInputData.PK_k)
+
+	if err != nil {
+		log.Printf("error decoding string for k: %v", err)
+		panic(fmt.Errorf("error decoding string for k: %v", err))
+	}
+
 	k.Unmarshal(kBytes)
 	var k_asBigInt big.Int
 	k.BigInt(&k_asBigInt)
 
 	var v BN254_fr.Element
-	vBytes, _ := hex.DecodeString(recipientInputData.PK_v)
+	vBytes, err := hex.DecodeString(recipientInputData.PK_v)
+
+	if err != nil {
+		log.Printf("error decoding string for v: %v", err)
+		panic(fmt.Errorf("error decoding string for v: %v", err))
+	}
+
 	v.Unmarshal(vBytes)
 	var v_asBigInt big.Int
 	v.BigInt(&v_asBigInt)
@@ -116,7 +160,6 @@ func Scan(inputJsonString string) (outputJsonString string) {
 
 		tmp := utils.BN254_MulG1PointandElement(&Rsi, &v)
 		calculatedViewTag := utils.ComputeViewTag("v1-1byte", &tmp)
-		fmt.Println("calculatedViewTag", calculatedViewTag)
 
 		if calculatedViewTag != recipientInputData.ViewTags[i][:2*nBytesInViewTag] {
 			continue
@@ -133,7 +176,13 @@ func Scan(inputJsonString string) (outputJsonString string) {
 		recipientOutputData.SpendingPrivKeys = append(recipientOutputData.SpendingPrivKeys, "0x"+kb.Text(16))
 	}
 
-	tmp, _ := json.Marshal(recipientOutputData)
+	tmp, err := json.Marshal(recipientOutputData)
+
+	if err != nil {
+		log.Printf("error marshalling recipient output data: %v", err)
+		panic(fmt.Errorf("error marshalling recipient output data: %v", err))
+	}
+
 	return string(tmp)
 }
 
@@ -174,7 +223,12 @@ func computeSharedSecret(v *BN254_fr.Element, R *BN254.G1Affine) BN254.GT {
 	var G2Aff BN254.G2Affine
 	G2Aff.FromJacobian(&G2Jac)
 
-	P, _ := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
+	P, err := BN254.Pair([]BN254.G1Affine{productAffine}, []BN254.G2Affine{G2Aff})
+
+	if err != nil {
+		log.Printf("error while pairing calculates: %v", err)
+		panic(fmt.Errorf("error while pairing calculates: %v", err))
+	}
 
 	return P
 }
