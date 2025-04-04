@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { ContractListener } from "../listener/contract-listener";
-import { IndexerOptions, ListenerData } from "../types";
+import { ChainEnum, IndexerOptions, ListenerData } from "../types";
 import { validateAndParseAddress, shortString } from "starknet";
 import {
   isValidEphemeralPublicKey,
@@ -8,40 +8,46 @@ import {
   isValidSECP256k1Point,
   isValidViewTag,
 } from "../validation/curvy-utils";
+import { Indexer } from "./manager";
+import { DBConfig } from "../config";
 
-export class Indexer {
+export class StarknetIndexer implements Indexer {
+  private chain: string;
+  private network: string;
+
   private pool: Pool;
   private announcerListener: ContractListener | any;
   private metaListener: ContractListener | any;
   private options: IndexerOptions;
 
-  constructor(options: IndexerOptions) {
+  constructor(options: IndexerOptions, dbConfig: DBConfig, chainEnum: ChainEnum) {
     this.options = options;
-    this.pool = new Pool(this.options.dbConfig);
+    this.pool = new Pool(dbConfig);
+    this.chain = chainEnum.split("-")[0];
+    this.network = chainEnum.split("-")[1];
   }
+
   public async start() {
     this.announcerListener = new ContractListener({
-      rpcUrl: this.options.rpcUrl,
       contractAddress: this.options.announcer.contractAddress,
       fromBlock: await this.determineActualFromBlock(
         this.options.announcer.contractAddress,
       ),
-      abi: this.options.announcer.abi,
+      abiPath: this.options.announcer.abiPath,
       decodeParameters: this.options.announcer.decodeParameters,
       chunkSize: this.options.announcer.chunkSize,
-    });
+    }, this.options.rpcUrl);
 
     this.metaListener = new ContractListener({
-      rpcUrl: this.options.rpcUrl,
       contractAddress: this.options.metaRegistry.contractAddress,
       fromBlock: await this.determineActualFromBlock(
         this.options.metaRegistry.contractAddress,
       ),
-      abi: this.options.metaRegistry.abi,
+      abiPath: this.options.metaRegistry.abiPath,
       decodeParameters: this.options.metaRegistry.decodeParameters,
       chunkSize: this.options.metaRegistry.chunkSize,
       eventName: this.options.metaRegistry.eventName,
-    });
+    }, this.options.rpcUrl);
 
     // Subscribe to announcer events.
     this.announcerListener.on("event", async (data: ListenerData) => {
@@ -95,20 +101,23 @@ export class Indexer {
       (await isValidSECP256k1Point(stealthAccountPublicKey));
 
     const query = `
-          INSERT INTO announcements
-              (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid)
-          VALUES
-              ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10)
-          ON CONFLICT (stealth_account_address, ephemeral_public_key, stealth_account_public_key, view_tag) 
-          DO UPDATE SET
-              sender = EXCLUDED.sender,
-              amount = EXCLUDED.amount,
-              stealth_account_public_key = EXCLUDED.stealth_account_public_key,
-              created_at = EXCLUDED.created_at,
-              block_number = EXCLUDED.block_number,
-              hash = EXCLUDED.hash,
-              all_data_is_valid = EXCLUDED.all_data_is_valid;
-        `;
+      INSERT INTO announcements
+          (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid, network, chain)
+      VALUES
+          ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10, $11, $12)
+      ON CONFLICT (stealth_account_address, ephemeral_public_key, stealth_account_public_key, view_tag)
+      DO UPDATE SET
+          sender = EXCLUDED.sender,
+          amount = EXCLUDED.amount,
+          stealth_account_public_key = EXCLUDED.stealth_account_public_key,
+          created_at = EXCLUDED.created_at,
+          block_number = EXCLUDED.block_number,
+          hash = EXCLUDED.hash,
+          all_data_is_valid = EXCLUDED.all_data_is_valid,
+          network = EXCLUDED.network,
+          chain = EXCLUDED.chain;
+    `;
+
     const values = [
       sender,
       stealthAccountAddress,
@@ -120,6 +129,8 @@ export class Indexer {
       blockNumber,
       hash,
       allDataIsValid,
+      this.network,
+      this.chain,
     ];
 
     try {
@@ -137,12 +148,13 @@ export class Indexer {
     stealthAccountAddress: string,
   ) {
     const query = `
-          INSERT INTO announcements
-              (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid)
-          VALUES
-              ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10)
-          ON CONFLICT DO NOTHING;
-        `;
+      INSERT INTO announcements
+          (sender, stealth_address, amount, ephemeral_public_key, view_tag, stealth_account_public_key, stealth_account_address, created_at, block_number, hash, all_data_is_valid, network, chain)
+      VALUES
+          ($1, $2, $3, $4, $5, $6, $7, NOW(), $8, $9, $10, $11, $12)
+      ON CONFLICT DO NOTHING;
+    `;
+
     const values = [
       "no-sender-yet",
       stealthAccountAddress,
@@ -154,6 +166,8 @@ export class Indexer {
       0,
       "no-hash-yet",
       true,
+      this.network,
+      this.chain
     ];
 
     try {
@@ -184,19 +198,21 @@ export class Indexer {
     const allDataIsValid = await isValidMetaAddress(metaAddress);
 
     const query = `
-          INSERT INTO meta_addresses_registry
-              (meta_id, starknet_address, spending_public_key, viewing_public_key, created_at, block_number, hash, all_data_is_valid)
-          VALUES
-              ($1, $2, $3, $4, NOW(), $5, $6, $7)
-          ON CONFLICT (meta_id) DO UPDATE SET
-              starknet_address = EXCLUDED.starknet_address,
-              spending_public_key = EXCLUDED.spending_public_key,
-              viewing_public_key = EXCLUDED.viewing_public_key,
-              created_at = EXCLUDED.created_at,
-              block_number = EXCLUDED.block_number,
-              hash = EXCLUDED.hash,
-              all_data_is_valid = EXCLUDED.all_data_is_valid;
-        `;
+      INSERT INTO meta_addresses_registry
+          (meta_id, starknet_address, spending_public_key, viewing_public_key, created_at, block_number, hash, all_data_is_valid, network, chain)
+      VALUES
+          ($1, $2, $3, $4, NOW(), $5, $6, $7, $8, $9)
+      ON CONFLICT (meta_id) DO UPDATE SET
+          starknet_address = EXCLUDED.starknet_address,
+          spending_public_key = EXCLUDED.spending_public_key,
+          viewing_public_key = EXCLUDED.viewing_public_key,
+          created_at = EXCLUDED.created_at,
+          block_number = EXCLUDED.block_number,
+          hash = EXCLUDED.hash,
+          all_data_is_valid = EXCLUDED.all_data_is_valid,
+          network = EXCLUDED.network,
+          chain = EXCLUDED.chain;
+    `;
     const values = [
       metaId,
       starknetAddress,
@@ -205,6 +221,8 @@ export class Indexer {
       blockNumber,
       hash,
       allDataIsValid,
+      this.network,
+      this.chain
     ];
 
     try {
@@ -218,65 +236,73 @@ export class Indexer {
   public async resolveMetaId(address: string) {
     // TODO: Return multiple if present.
     const query = `
-          SELECT meta_id 
-          FROM meta_addresses_registry 
-          WHERE starknet_address = $1 
-          ORDER BY block_number DESC 
-          LIMIT 1
-        `;
+      SELECT meta_id 
+      FROM meta_addresses_registry 
+      WHERE starknet_address = $1
+        AND network = $2
+        AND chain = $3
+      ORDER BY block_number DESC 
+      LIMIT 1
+    `;
 
-    const result = await this.pool.query(query, [address]);
+    const result = await this.pool.query(query, [address, this.network, this.chain]);
     return result.rows.length === 0 ? null : result.rows[0].meta_id;
   }
 
   public async checkMetaId(metaId: string) {
     const query = `
-          SELECT spending_public_key, viewing_public_key
-          FROM meta_addresses_registry
-          WHERE meta_id = $1
-          ORDER BY block_number DESC
-          LIMIT 1
-        `;
+      SELECT spending_public_key, viewing_public_key
+      FROM meta_addresses_registry
+      WHERE meta_id = $1
+        AND network = $2
+        AND chain = $3
+      ORDER BY block_number DESC
+      LIMIT 1
+    `;
 
-    const result = await this.pool.query(query, [metaId]);
+    const result = await this.pool.query(query, [metaId, this.network, this.chain]);
     return result.rows.length === 0 ? null : result.rows[0];
   }
 
   public async getInfo(offset: number, size: number) {
     const query = `
-          SELECT
-              ephemeral_public_key AS "ephemeralKeys",
-              view_tag AS "viewTag",
-              stealth_address AS "stealthAddress"
-          FROM announcements
-          WHERE all_data_is_valid
-          ORDER BY block_number DESC
-          OFFSET $1 LIMIT $2
-        `;
+      SELECT
+          ephemeral_public_key AS "ephemeralKeys",
+          view_tag AS "viewTag",
+          stealth_address AS "stealthAddress"
+      FROM announcements
+      WHERE all_data_is_valid
+        AND network = $3
+        AND chain = $4
+      ORDER BY block_number DESC
+      OFFSET $1 LIMIT $2
+    `;
 
-    const result = await this.pool.query(query, [offset, size]);
+    const result = await this.pool.query(query, [offset, size, this.network, this.chain]);
     return result.rows;
   }
 
   public async getInfoCount() {
-    const query = `SELECT COUNT(*) AS total FROM announcements WHERE all_data_is_valid`;
+    const query = `SELECT COUNT(*) AS total FROM announcements WHERE all_data_is_valid AND network = $1 AND chain = $2`;
 
-    const result = await this.pool.query(query);
+    const result = await this.pool.query(query, [this.network, this.chain]);
     return parseInt(result.rows[0].total, 10);
   }
 
   public async getTransfers(addresses: string[]) {
     const query = `
-            SELECT 
-                stealth_address AS address,
-                hash AS "transactionHash",
-                amount
-            FROM announcements
-            WHERE stealth_address = ANY($1)
-            ORDER BY block_number DESC
-        `;
+      SELECT 
+          stealth_address AS address,
+          hash AS "transactionHash",
+          amount
+      FROM announcements
+      WHERE stealth_address = ANY($1)
+        AND network = $2
+        AND chain = $3
+      ORDER BY block_number DESC
+    `
 
-    const result = await this.pool.query(query, [addresses]);
+    const result = await this.pool.query(query, [addresses, this.network, this.chain]);
     return result.rows;
   }
 
@@ -284,9 +310,10 @@ export class Indexer {
     const query = `
             SELECT * FROM indexer_progress
             WHERE contract_address = TEXT($1)
+            AND network = $2 AND chain = $3
         `;
 
-    const result = await this.pool.query(query, [contractAddress]);
+    const result = await this.pool.query(query, [contractAddress, this.network, this.chain]);
     return result;
   }
 
@@ -294,17 +321,17 @@ export class Indexer {
     contractAddress: string,
   ): Promise<number> {
     const insertQuery = `
-            INSERT INTO indexer_progress
-                (contract_address, latest_block)
-            VALUES
-                ($1, $2)
-            ON CONFLICT DO NOTHING;
-        `;
+      INSERT INTO indexer_progress
+          (contract_address, latest_block, network, chain)
+      VALUES
+          ($1, $2, $3, $4)
+      ON CONFLICT DO NOTHING;
+    `;
 
     const res = await this.getProgress(contractAddress);
     if (res.rows.length === 0) {
       // Initial start - no record in the DB
-      await this.pool.query(insertQuery, [contractAddress, 0]);
+      await this.pool.query(insertQuery, [contractAddress, 0, this.network, this.chain]);
       return 0;
     }
 
@@ -314,11 +341,11 @@ export class Indexer {
   public async saveProgress(contractAddress: string, latestBlock: number) {
     const query = `
             UPDATE indexer_progress
-                SET latest_block = ${latestBlock}
+                SET latest_block = ${latestBlock}, network = $2, chain = $3
             WHERE contract_address = TEXT($1);
         `;
 
-    const result = await this.pool.query(query, [contractAddress]);
+    const result = await this.pool.query(query, [contractAddress, this.network, this.chain]);
     return result;
   }
 }
