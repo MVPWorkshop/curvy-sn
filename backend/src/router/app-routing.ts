@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { AppRoute } from "./app-route";
 import { StarknetController } from "../controller/starknet-controller";
-import announcerArtifact from "../artifacts/curvy_announcer_CurvyAnnouncerV0.contract_class.json";
-import metaRegistryArtifact from "../artifacts/curvy_meta_registry_CurvyMetaRegistryV0.contract_class.json";
 import { Config } from "../config";
+import { IndexerManager } from "../indexer/manager";
+import { IndexerOptions } from "../types";
 
 export class AppRouting {
   constructor(
@@ -15,37 +15,21 @@ export class AppRouting {
   }
 
   public configure() {
+    const options: { [key: string]: IndexerOptions } = {};
+    this.config.indexers.forEach((opt) => {
+      const key = `${opt.chain.toLowerCase()}-${opt.network.toLowerCase()}`;
+      options[key] = opt;
+    });
+
+    const manager = new IndexerManager(options, this.config.database)
+
     this.addRoute(
       new StarknetController(
-        {
-          rpcUrl: this.config.RpcUrl,
-          announcer: {
-            rpcUrl: process.env.RPC_URL!,
-            contractAddress: process.env.ANNOUNCER_ADDRESS!,
-            fromBlock: -1,
-            chunkSize: 1000,
-            abi: announcerArtifact.abi,
-            decodeParameters: [
-              "core::byte_array::ByteArray",
-              "core::byte_array::ByteArray",
-              "core::byte_array::ByteArray",
-              "core::starknet::contract_address::ContractAddress",
-            ],
-          },
-          metaRegistry: {
-            rpcUrl: process.env.RPC_URL!,
-            contractAddress: process.env.META_REGISTRY_ADDRESS!,
-            fromBlock: -1,
-            chunkSize: 1000,
-            abi: metaRegistryArtifact.abi,
-            eventName: "MetaAddressSet",
-            decodeParameters: ["core::felt252", "core::byte_array::ByteArray"],
-          },
-          dbConfig: this.config.Database,
-        },
-        this.config.StarknetCors,
-      ),
+        manager,
+        this.config.starknetCors
+      )
     );
+
   }
 
   private addRoute(appRoute: AppRoute) {

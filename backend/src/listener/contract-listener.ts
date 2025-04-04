@@ -8,20 +8,27 @@ import {
   ContractListenerOptions,
   StarknetTransaction,
 } from "../types";
+import { readFileSync } from "fs";
+import path from "path";
 
 export class ContractListener extends EventEmitter {
   private options: ContractListenerOptions;
+  private rpcUrl: string;
   private pollingInterval: number;
   private lastBlockScanned: number;
   private timer?: NodeJS.Timeout;
   private pollingMutexTaken: boolean;
+  private abi: any;
 
-  constructor(options: ContractListenerOptions, pollingInterval = 1000) {
+  constructor(options: ContractListenerOptions, rpcUrl: string, pollingInterval = 1000) {
     super();
     this.options = options;
     this.pollingInterval = pollingInterval;
     this.lastBlockScanned = options.fromBlock;
     this.pollingMutexTaken = false;
+    this.rpcUrl = rpcUrl;
+
+    this.abi = this.loadContractArtifact(options.abiPath).abi
   }
 
   private async pollEvents() {
@@ -68,7 +75,7 @@ export class ContractListener extends EventEmitter {
       method: "starknet_blockNumber",
     };
 
-    const blockRes = await fetch(this.options.rpcUrl, {
+    const blockRes = await fetch(this.rpcUrl, {
       method: "POST",
       headers: {
         accept: "application/json",
@@ -109,7 +116,7 @@ export class ContractListener extends EventEmitter {
       params,
     };
 
-    const res = await fetch(this.options.rpcUrl, {
+    const res = await fetch(this.rpcUrl, {
       method: "POST",
       headers: {
         accept: "application/json",
@@ -148,13 +155,13 @@ export class ContractListener extends EventEmitter {
         (c: ParsedCall) =>
           validContractAddress == validateAndParseAddress(c.contractAddress) ||
           validContractAddress ==
-            validateAndParseAddress(c.calldata[8] ?? "0x0"),
+          validateAndParseAddress(c.calldata[8] ?? "0x0"),
       );
 
       // Process events for the contract that is attached
       if (myCalls.length == 0) return null;
 
-      const callData = new CallData(this.options.abi);
+      const callData = new CallData(this.abi);
 
       let rawData: string[] = [];
       if (
@@ -204,7 +211,7 @@ export class ContractListener extends EventEmitter {
       params: [hash],
     };
 
-    const res = await fetch(this.options.rpcUrl, {
+    const res = await fetch(this.rpcUrl, {
       method: "POST",
       headers: {
         accept: "application/json",
@@ -225,5 +232,16 @@ export class ContractListener extends EventEmitter {
 
   public stop() {
     if (this.timer) clearInterval(this.timer);
+  }
+
+  private loadContractArtifact(abiPath: string): any {
+    try {
+      const fullPath = path.resolve(abiPath);
+      const abiContent = readFileSync(fullPath, "utf8");
+      return JSON.parse(abiContent);
+    } catch (err: any) {
+      console.log(`Error loading ABI from ${abiPath}:`, err)
+      throw (err)
+    }
   }
 }

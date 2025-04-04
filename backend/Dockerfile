@@ -16,6 +16,8 @@ COPY . .
 # Build TypeScript code
 RUN npx tsc
 
+COPY config.json build/src/config.json
+
 # Expose the port on which your app will run
 EXPOSE 4000
 

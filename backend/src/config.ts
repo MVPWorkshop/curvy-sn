@@ -1,3 +1,6 @@
+import { IndexerOptions } from "./types";
+import path from "path";
+import { readFileSync } from "fs";
 export interface DBConfig {
   host: string;
   port: number;
@@ -7,41 +10,15 @@ export interface DBConfig {
 }
 
 export interface Config {
-  Database: DBConfig;
-  AccountClassHash: string;
-  AnnouncerAddress: string;
-  MetaRegistryAddress: string;
-  RpcUrl: string;
-  JWTSecret: string;
-  StarknetCors: string;
-}
-
-function requireEnv(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`);
-  }
-  return value;
+  database: DBConfig;
+  jwtSecret: string;
+  starknetCors: string;
+  indexers: IndexerOptions[];
 }
 
 export function initConfig(): Config {
-  const dbConfig: DBConfig = {
-    host: requireEnv("PGHOST"),
-    port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5432,
-    user: requireEnv("PGUSER"),
-    password: requireEnv("PGPASSWORD"),
-    database: requireEnv("PGDATABASE"),
-  };
-
-  const config: Config = {
-    Database: dbConfig,
-    AccountClassHash: requireEnv("CURVY_ACCOUNT_CLASS_HASH"),
-    AnnouncerAddress: requireEnv("ANNOUNCER_ADDRESS"),
-    MetaRegistryAddress: requireEnv("META_REGISTRY_ADDRESS"),
-    RpcUrl: requireEnv("RPC_URL"),
-    JWTSecret: requireEnv("JWT_SECRET"),
-    StarknetCors: requireEnv("STARKNET_CORS"),
-  };
-
+  const configPath = path.join(__dirname, "config.json");
+  const rawData = readFileSync(configPath, "utf8");
+  const config: Config = JSON.parse(rawData);
   return config;
 }

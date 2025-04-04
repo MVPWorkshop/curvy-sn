@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS meta_addresses_registry (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     block_number BIGINT NOT NULL,
     hash CITEXT NOT NULL,
-    all_data_is_valid BOOLEAN NOT NULL
+    all_data_is_valid BOOLEAN NOT NULL,
+    network CITEXT NOT NULL,
+    chain CITEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS announcements (
@@ -24,10 +26,14 @@ CREATE TABLE IF NOT EXISTS announcements (
     block_number BIGINT NOT NULL,
     hash CITEXT NOT NULL,
     all_data_is_valid BOOLEAN NOT NULL,
+     network CITEXT NOT NULL,
+    chain CITEXT NOT NULL,
     UNIQUE (stealth_account_address, ephemeral_public_key, stealth_account_public_key, view_tag)
 );
 
 CREATE TABLE IF NOT EXISTS indexer_progress (
     contract_address CITEXT NOT NULL,
-    latest_block BIGINT NOT NULL
+    latest_block BIGINT NOT NULL,
+    network CITEXT NOT NULL,
+    chain CITEXT NOT NULL
 );
