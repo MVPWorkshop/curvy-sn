@@ -8,7 +8,7 @@ export interface CurrencyPrice {
     price: number;
 }
 
-export class CurrencyConsumer {
+export class CurrencyManager {
     private apiUrl: string;
     private apiToken: string;
     private pool: Pool;
