@@ -96,15 +96,11 @@ func GetMeta(inputJsonString string) (outputJsonString string) {
 
 func Scan(inputJsonString string) (outputJsonString string) {
 
-	fmt.Println(inputJsonString)
-
 	var recipientInputData RecipientInputData
 	if err := json.Unmarshal([]byte(inputJsonString), &recipientInputData); err != nil {
 		log.Printf("error marshalling input string: %v", err)
 		panic(fmt.Errorf("error marshalling input string: %v", err))
 	}
-
-	fmt.Println("recipientInputData", recipientInputData)
 
 	Rs_string := recipientInputData.Rs
 
@@ -164,7 +160,6 @@ func Scan(inputJsonString string) (outputJsonString string) {
 
 		tmp := utils.BN254_MulG1PointandElement(&Rsi, &v)
 		calculatedViewTag := utils.ComputeViewTag("v1-1byte", &tmp)
-		fmt.Println("calculatedViewTag", calculatedViewTag)
 
 		if calculatedViewTag != recipientInputData.ViewTags[i][:2*nBytesInViewTag] {
 			continue

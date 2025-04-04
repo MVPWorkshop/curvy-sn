@@ -16,8 +16,6 @@ import (
 
 func Send(inputJsonString string) (outputJsonString string) {
 
-	fmt.Println("jsonInputString::", inputJsonString)
-
 	var senderInputData SenderInputData
 	if err := json.Unmarshal([]byte(inputJsonString), &senderInputData); err != nil {
 		log.Printf("error while unmarshalling input string: %v", err)
