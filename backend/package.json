@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx tsc && node build/src/start.js",
-    "generate-jwt": "npx tsc  && node build/scripts/generate-jwt.js"
+    "generate-jwt": "npx tsc && cp ./config.json ./build/src/config.json && node build/scripts/generate-jwt.js"
   },
   "author": "",
   "license": "ISC",

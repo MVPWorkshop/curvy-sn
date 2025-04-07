@@ -1,7 +1,7 @@
 import { IndexerOptions } from "./types";
 import path from "path";
 import { readFileSync } from "fs";
-import { CurrencyManager } from "./currencies/manager";
+// import { CurrencyManager } from "./currencies/manager";
 
 export interface DBConfig {
   host: string;
@@ -21,7 +21,7 @@ export interface CurrencyConfig {
 export interface Config {
   database: DBConfig;
   jwtSecret: string;
-  starknetCors: string;
+  cors: string;
   indexers: IndexerOptions[];
   currencyManager: CurrencyConfig;
 }
@@ -30,10 +30,6 @@ export function initConfig(): Config {
   const configPath = path.join(__dirname, "config.json");
   const rawData = readFileSync(configPath, "utf8");
   const config: Config = JSON.parse(rawData);
-
-  const currManager = new CurrencyManager(config.currencyManager, config.database);
-
-  currManager.start();
 
   return config;
 }

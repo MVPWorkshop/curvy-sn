@@ -1,15 +1,14 @@
 import jwt from "jsonwebtoken";
-require("dotenv").config();
-const JWT_SECRET: string = process.env.JWT_SECRET ?? "failed";
+import { initConfig } from "../src/config";
+const config = initConfig();
+const JWT_SECRET: string = config.jwtSecret;
 
-const generateToken = () => {
-  if (JWT_SECRET === "failed") {
-    console.log(
-      "JWT_SECRET or JWT_DURATION not set properly in the environment!",
-    );
-    return;
-  }
+if (!JWT_SECRET) {
+  console.error("JWT_SECRET is not set properly in the configuration!");
+  process.exit(1);
+}
 
+const generateToken = (): void => {
   const payload = {
     user: "frontend",
   };
