@@ -37,3 +37,18 @@ CREATE TABLE IF NOT EXISTS indexer_progress (
     network CITEXT NOT NULL,
     chain CITEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS currency_prices (
+    id INTEGER PRIMARY KEY,
+    name CITEXT NOT NULL,
+    symbol CITEXT NOT NULL,
+    price NUMERIC NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO currency_prices (id, name, symbol, price, updated_at)
+VALUES 
+  (1027, 'Ethereum', 'ETH', 2500, NOW()),
+  (825, 'Tether USDt', 'USDT', 1.00, NOW()),
+  (1839, 'Binance Coin', 'BNB', 300, NOW())
+ON CONFLICT (id) DO NOTHING;
