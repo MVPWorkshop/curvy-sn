@@ -7,6 +7,11 @@ export function createAuthMiddleware(secret: string) {
     res: Response,
     next: NextFunction,
   ): void => {
+    if (req.path.includes("swagger")) {
+      next();
+      return;
+    }
+
     if (secret === "") {
       res.status(500).json({ error: "Server misconfigured at the moment" });
       return;

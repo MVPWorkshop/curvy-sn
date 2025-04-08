@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS meta_addresses_registry (
     meta_id VARCHAR(255) PRIMARY KEY,
     address VARCHAR(255) NOT NULL,
     pub_keys JSONB NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS announcements (
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS announcements (
     stealth_pub_key JSONB NOT NULL,
     ephemeral_public_key VARCHAR(255) NOT NULL,
     view_tag VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Legacy table
