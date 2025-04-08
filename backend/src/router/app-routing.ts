@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { AppRoute } from "./app-route";
 import { Config } from "../config";
-import { IndexerOptions } from "../types";
 import { CurrencyController } from "../controller/currency-controller";
 import { CurrencyManager } from "../currencies/manager";
 import { ChainController } from "../controller/chain-controller";
@@ -16,24 +15,8 @@ export class AppRouting {
   }
 
   public configure() {
-    const options: { [key: string]: IndexerOptions } = {};
-    this.config.indexers.forEach((opt) => {
-      const key = `${opt.chain.toLowerCase()}-${opt.network.toLowerCase()}`;
-      options[key] = opt;
-    });
-
-    // const manager = new IndexerManager(options, this.config.database)
-
     const currencyManager = new CurrencyManager(this.config.currencyManager, this.config.database);
     currencyManager.start();
-
-    // this.addRoute(
-    //   new StarknetController(
-    //     manager,
-    //     this.config.cors,
-    //     this.config.jwtSecret
-    //   )
-    // );
 
     this.addRoute(
       new CurrencyController(
