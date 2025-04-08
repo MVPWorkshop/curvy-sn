@@ -1,0 +1,46 @@
+{
+    "database": {
+        "host": "",
+        "port": 0,
+        "user": "",
+        "password": "",
+        "database": ""
+    },
+    "currencyManager": {
+        "apiToken": "",
+        "apiUrl": "",
+        "intervalMs": 0
+    },
+    "jwtSecret": "",
+    "cors": "*",
+    "indexers": [
+        {
+            "chain": "",
+            "network": "",
+            "rpcUrl": "",
+            "announcer": {
+                "contractAddress": "",
+                "fromBlock": -1,
+                "chunkSize": 1000,
+                "abiPath": "",
+                "decodeParameters": [
+                    "core::byte_array::ByteArray",
+                    "core::byte_array::ByteArray",
+                    "core::byte_array::ByteArray",
+                    "core::starknet::contract_address::ContractAddress"
+                ]
+            },
+            "metaRegistry": {
+                "contractAddress": "",
+                "fromBlock": -1,
+                "chunkSize": 1000,
+                "abiPath": "",
+                "eventName": "",
+                "decodeParameters": [
+                    "core::felt252",
+                    "core::byte_array::ByteArray"
+                ]
+            }
+        }
+    ]
+}
