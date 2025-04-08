@@ -7,7 +7,6 @@ import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
 const path = require("path");
-require("dotenv").config();
 
 export class Server {
   public app: express.Express;
