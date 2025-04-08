@@ -7,7 +7,7 @@ import {
     isValidSECP256k1Point,
     isValidViewTag,
 } from "../validation/curvy-utils";
-import { authenticateToken } from "../middlewares/jwt-auth";
+import { createAuthMiddleware } from "../middlewares/jwt-auth";
 import { IndexerManager } from "../indexer/manager";
 
 export class StarknetController implements AppRoute {
@@ -15,11 +15,11 @@ export class StarknetController implements AppRoute {
     router: Router = Router();
     indexerManager: IndexerManager;
 
-    constructor(manager: IndexerManager, corsOrigin: string) {
+    constructor(manager: IndexerManager, corsOrigin: string, secret: string) {
         this.indexerManager = manager;
 
         this.router.use(cors({ origin: corsOrigin }));
-        this.router.use(authenticateToken);
+        this.router.use(createAuthMiddleware(secret));
 
         //endpoint
         this.router.get("/:network/checkmeta/:metaId", (request, response) => {
