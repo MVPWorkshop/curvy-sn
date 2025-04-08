@@ -24,6 +24,7 @@ export interface Config {
   cors: string;
   indexers: IndexerOptions[];
   currencyManager: CurrencyConfig;
+  port: number;
 }
 
 export function initConfig(): Config {

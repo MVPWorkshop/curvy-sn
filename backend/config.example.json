@@ -1,4 +1,5 @@
 {
+    "port": 0,
     "database": {
         "host": "",
         "port": 0,

@@ -3,6 +3,8 @@ import * as http from "http";
 import { json, urlencoded } from "body-parser";
 import { AppRouting } from "./router/app-routing";
 import { Config } from "./config";
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 const path = require("path");
 require("dotenv").config();
@@ -22,6 +24,33 @@ export class Server {
   private configure() {
     this.configureMiddleware();
     this.configureRoutes();
+    this.configureSwagger();
+  }
+
+  private configureSwagger() {
+    const swaggerDefinition = {
+      openapi: "3.0.0",
+      info: {
+        title: "Curvy API Documentation",
+        version: "2.0.0",
+        description: "API documentation",
+      },
+      servers: [
+        {
+          url: `http://localhost:${this.config.port}`,
+          description: "Development server",
+        },
+      ],
+    };
+
+    const options = {
+      swaggerDefinition,
+      apis: [path.resolve(__dirname, "./controller/*.js")], // for dev
+    };
+
+    const swaggerSpec = swaggerJSDoc(options);
+
+    this.app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
   }
 
   private configureMiddleware() {
@@ -40,7 +69,7 @@ export class Server {
   }
 
   public run() {
-    const port = process.env.PORT || 4000;
+    const port = this.config.port;
     const server = http.createServer(this.app);
 
     //Docker sends SIGTERM signal when using docker stop
