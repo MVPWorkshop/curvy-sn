@@ -75,7 +75,7 @@ export class CurrencyManager {
     }
 
     public async getLatestPrices(): Promise<CurrencyPrice[]> {
-        const query = `SELECT * FROM currency_prices ORDER BY updated_at DESC LIMIT 100`;
+        const query = `SELECT * FROM currency_prices ORDER BY updated_at DESC`;
         const result = await this.pool.query(query);
         return result.rows;
     }
