@@ -17,6 +17,8 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.10",
     "@types/pg": "^8.11.11",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "prettier": "3.5.3",
     "typescript": "^5.8.2"
   },
@@ -25,10 +27,11 @@
     "@types/k6": "^0.57.1",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.3",
-    "starknet": "^6.23.1"
+    "starknet": "^6.23.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }
