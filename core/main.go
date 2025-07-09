@@ -12,13 +12,17 @@ import (
 func main() {
 	c := make(chan struct{}, 0)
 
-	js.Global().Set("new_meta", js.FuncOf(newMeta))
-	js.Global().Set("get_meta", js.FuncOf(getMeta))
-	js.Global().Set("send", js.FuncOf(send))
-	js.Global().Set("scan", js.FuncOf(scan))
+	curvyNamespace := js.Global().Get("Object").New()
+
+	curvyNamespace.Set("new_meta", js.FuncOf(newMeta))
+	curvyNamespace.Set("get_meta", js.FuncOf(getMeta))
+	curvyNamespace.Set("send", js.FuncOf(send))
+	curvyNamespace.Set("scan", js.FuncOf(scan))
 	// debugging options
-	js.Global().Set("dbg_isValidBN254Point", js.FuncOf(isValidBN254Point))
-	js.Global().Set("dbg_isValidSECP256k1Point", js.FuncOf(isValidSECP256k1Point))
+	curvyNamespace.Set("dbg_isValidBN254Point", js.FuncOf(isValidBN254Point))
+	curvyNamespace.Set("dbg_isValidSECP256k1Point", js.FuncOf(isValidSECP256k1Point))
+
+    js.Global().Set("curvy", curvyNamespace)
 
 	<-c
 }
